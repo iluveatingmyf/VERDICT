@@ -1,6 +1,6 @@
 # VERDICT — Modular Prompt Library
 
-> **VERDICT**: *Value-aligned Evaluation and Reasoning for Domestic IoT Control Threats* — an LLM-mediated runtime arbiter for smart home automation, designed for submission to security venues (USENIX Security / CCS / NDSS / S&P).
+> **VERDICT**: *Value-aligned Evaluation and Reasoning for Domestic IoT Control Threats* — an LLM-mediated runtime arbiter for smart home automation.
 
 Refactored from `prompt_template_v3.1.py` into composable modules so you can ablate, swap, and version-control individual pieces independently.
 
