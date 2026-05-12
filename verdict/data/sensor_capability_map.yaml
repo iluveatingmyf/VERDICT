@@ -1,0 +1,17 @@
+casas:
+  "M[0-9]+":
+    capability: motion
+    mode: read
+  "D[0-9]+":
+    capability: contact
+    mode: read
+  "T[0-9]+":
+    capability: temperature
+    mode: read
+  "LS[0-9]+":
+    capability: switch
+    mode: both
+  "LK[0-9]+":
+    capability: lock
+    mode: both
+aras: {}
