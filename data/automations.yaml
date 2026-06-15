@@ -1,0 +1,286 @@
+# automations.yaml - V19, The Ultimate, "No-Complex-Domain" Locked Version
+# This is the final, complete, and copy-paste ready version.
+
+# ===================================================================
+# SECTION 1: VIRTUAL DEVICE DRIVERS (V-Drivers)
+# This section simulates how complex devices respond to simple inputs.
+# ===================================================================
+
+- id: 'v_driver_thermostat_cooling_logic'
+  alias: '[V-Driver] Thermostat Cooling Logic'
+  trigger:
+    - platform: state
+      entity_id:
+        - sensor.living_room_temperature
+        - input_number.sim_thermostat_target_temp
+        - input_select.sim_ac_mode
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_select.sim_ac_mode
+              state: 'cool'
+            - condition: template
+              value_template: "{{ states('sensor.living_room_temperature') | float > states('input_number.sim_thermostat_target_temp') | float }}"
+          sequence:
+            - service: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.sim_ac_is_cooling
+      default:
+        - service: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.sim_ac_is_cooling
+
+- id: 'v_driver_thermostat_heating_logic'
+  alias: '[V-Driver] Thermostat Heating Logic'
+  trigger:
+    - platform: state
+      entity_id:
+        - sensor.living_room_temperature
+        - input_number.sim_thermostat_target_temp
+        - input_select.sim_heater_mode
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_select.sim_heater_mode
+              state: 'heat'
+            - condition: template
+              value_template: "{{ states('sensor.living_room_temperature') | float < states('input_number.sim_thermostat_target_temp') | float }}"
+          sequence:
+            - service: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.sim_heater_is_heating
+      default:
+        - service: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.sim_heater_is_heating
+
+# ===================================================================
+# SECTION 2: FAMILY AUTOMATION RULES
+# These are the "normal" home rules that our ConductorAI will analyze.
+# ===================================================================
+
+# --- SYSTEM LEVEL ---
+- id: 'auto_system_update_location'
+  alias: 'System - Update Location from Group'
+  trigger:
+    - platform: state
+      entity_id: group.family
+  action:
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.user_location
+      data:
+        option: "{{ 'away' if trigger.to_state.state == 'not_home' else 'home' }}"
+
+# --- CONVENIENCE ---
+- id: 'auto_loc_home_light_on'
+  alias: 'Convenience - Welcome Home Light'
+  trigger:
+    - platform: state
+      entity_id: input_select.user_location
+      to: 'home'
+  condition:
+    - condition: time
+      after: '18:00:00'
+  action:
+    # We now call the script to control the light
+    - service: script.set_living_room_light
+      data:
+        state: 'on'
+        brightness: 153 # ~60% of 255
+
+- id: 'auto_convenience_unlock_when_near'
+  alias: 'Convenience - Unlock when Near'
+  trigger:
+    - platform: geo_location
+      source: person.beth
+      event: enter
+      zone: zone.home
+  action:
+    - service: input_boolean.turn_off # Corresponds to unlocking
+      target:
+        entity_id: input_boolean.sim_main_door_is_locked
+
+- id: 'auto_convenience_pet_feeder'
+  alias: 'Convenience - Schedule Pet Feeder'
+  trigger:
+    - platform: time
+      at: '18:00:00'
+  action:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.sim_pet_feeder_switch
+
+- id: 'auto_health_air_circulation'
+  alias: 'Health - Evening Ventilation'
+  trigger:
+    - platform: time
+      at: '19:00:00'
+  condition:
+    - condition: state
+      entity_id: input_select.user_location
+      state: 'home'
+  action:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.sim_living_room_window_switch
+    - delay: '00:15:00'
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.sim_living_room_window_switch
+
+- id: 'auto_convenience_movie_mode'
+  alias: 'Convenience - Movie Mode'
+  trigger:
+    - platform: state
+      entity_id: input_select.sim_tv_source
+      to: ['Netflix', 'YouTube']
+  condition:
+    - condition: time
+      after: '20:00:00'
+  action:
+    - service: script.set_living_room_light
+      data:
+        state: 'on'
+        brightness: 25  # ~10%
+        color_temp: 400 # warm
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.sim_living_room_window_switch
+
+- id: 'auto_comfort_dinner_ambience'
+  alias: 'Comfort - Dinner Ambience'
+  trigger:
+    - platform: time
+      at: '19:00:00'
+  condition:
+    - condition: state
+      entity_id: input_select.user_location
+      state: 'home'
+  action:
+    - service: script.set_living_room_light
+      data:
+        state: 'on'
+        brightness: 204 # ~80%
+
+# --- ENERGY & COMFORT ---
+- id: 'auto_energy_ac_on_close_windows'
+  alias: 'Energy - Close Window when AC is on'
+  trigger:
+    - platform: state
+      entity_id: input_boolean.sim_ac_is_cooling
+      to: 'on'
+  condition:
+    - condition: state
+      entity_id: input_boolean.sim_living_room_window_switch
+      state: 'on'
+  action:
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.sim_living_room_window_switch
+
+# --- SECURITY & SAFETY ---
+- id: 'auto_security_arm_last_person_leaves'
+  alias: 'Security - Arm when Last Person Leaves'
+  trigger:
+    - platform: state
+      entity_id: group.family
+      from: 'home'
+      to: 'not_home'
+  action:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.sim_main_door_is_locked
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.sim_security_camera_is_on
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.sim_main_power_switch
+
+- id: 'auto_security_sleep_mode_breach'
+  alias: 'Security - Breach during Sleep Mode'
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.door_sensor
+      to: 'on'
+  condition:
+    - condition: state
+      entity_id: input_select.sleep_mode
+      state: 'on'
+  action:
+    - service: alarm_control_panel.alarm_trigger
+      target:
+        entity_id: alarm_control_panel.home_alarm
+
+- id: 'auto_safety_co_ventilation'
+  alias: 'Safety - CO Ventilation'
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.co_sensor
+      above: 50
+  action:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.sim_kitchen_window_switch
+
+- id: 'auto_chain_fan_assist'
+  alias: 'Safety - Assist CO Ventilation with Fan'
+  trigger:
+    - platform: state
+      entity_id: input_boolean.sim_kitchen_window_switch
+      to: 'on'
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.co_sensor
+      above: 50
+  action:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.sim_ventilation_fan_is_on
+
+- id: 'auto_ghost_alarm_step1'
+  alias: 'Security - Ghost Alarm Step 1 (Light on Motion)'
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.living_room_motion
+      to: 'on'
+  condition:
+    - condition: time
+      after: '23:00:00'
+  action:
+    - service: script.set_living_room_light
+      data:
+        state: 'on'
+        brightness: 255
+
+- id: 'auto_ghost_alarm_step2'
+  alias: 'Security - Ghost Alarm Step 2 (Alarm on Light)'
+  trigger:
+    - platform: state
+      entity_id: input_boolean.sim_living_room_light_switch
+      to: 'on'
+  condition:
+    - condition: time
+      after: '23:00:00'
+    - condition: state
+      entity_id: input_select.sleep_mode
+      state: 'on'
+  action:
+    - service: alarm_control_panel.alarm_trigger
+      target:
+        entity_id: alarm_control_panel.home_alarm
+
+# --- Bathroom ---
+- id: 'auto_humidity_fan_on'
+  alias: 'Health - Turn on Bathroom Fan when Humid'
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.bathroom_humidity
+      above: 80
+  action:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.sim_bathroom_fan_is_on

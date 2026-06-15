@@ -1,5 +1,11 @@
 # VERDICT — Modular Prompt Library
 
+拿 TAPFixer 的 53 条 property 和他们公开的规则集,跑出 repaired rule set。然后人工构造(不是 LLM 构造)situations,让 repaired set 在这些 situation 下依然违反住户意图。
+能构出 10~20 个非平凡反例,就是非常强的存在性证明:"通过 SOTA 验证的规则集仍然存在 X 类系统性盲点"。"直接打 SOTA"型的 measurement,reviewer 很买账。
+前提:他们的 dataset/code 可用。如果不可用,这条路退化。
+
+
+
 > **VERDICT**: *Value-aligned Evaluation and Reasoning for Domestic IoT Control Threats* — an LLM-mediated runtime arbiter for smart home automation.
 
 Refactored from `prompt_template_v3.1.py` into composable modules so you can ablate, swap, and version-control individual pieces independently.
