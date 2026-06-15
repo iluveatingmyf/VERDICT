@@ -1,0 +1,28 @@
+============================================================
+候选: 开厨房窗(默认)  (cover.kitchen_window -> open)
+------------------------------------------------------------
+  Step 0:
+    [LOGICAL R12] fan.ventilation_fan -> STATE=on
+    [CAUSAL  C:cover.kitchen_window->sensor.kitchen_co@open] sensor.kitchen_co -> DECREASE  (channel=air_quality)
+  Step 1:
+    [LOGICAL R3] cover.living_room_window -> STATE=closed
+    [CAUSAL  C:fan.ventilation_fan->sensor.kitchen_co@on] sensor.kitchen_co -> DECREASE  (channel=air_quality)
+    [CAUSAL  C:fan.ventilation_fan->sensor.living_room_co2@on] sensor.living_room_co2 -> DECREASE  (channel=air_quality)
+  >> 是否波及儿童房: 否
+
+============================================================
+候选: 开抽油烟机  (switch.range_hood -> on)
+------------------------------------------------------------
+  Step 0:
+    [CAUSAL  C:switch.range_hood->sensor.kitchen_co@on] sensor.kitchen_co -> DECREASE  (channel=air_quality)
+  >> 是否波及儿童房: 否
+
+============================================================
+候选: 开通风扇  (fan.ventilation_fan -> on)
+------------------------------------------------------------
+  Step 0:
+    [LOGICAL R3] cover.living_room_window -> STATE=closed
+    [CAUSAL  C:fan.ventilation_fan->sensor.kitchen_co@on] sensor.kitchen_co -> DECREASE  (channel=air_quality)
+    [CAUSAL  C:fan.ventilation_fan->sensor.living_room_co2@on] sensor.living_room_co2 -> DECREASE  (channel=air_quality)
+  >> 是否波及儿童房: 否
+

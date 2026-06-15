@@ -1,0 +1,99 @@
+{
+  "property_id": "P52",
+  "source": "TAPFixer correctness property P.52 (G5, G23)",
+  "skeleton": {
+    "trigger": "CO is detected (sensor.kitchen_co above danger threshold)",
+    "action": "open the window (cover.kitchen_window.open_cover)",
+    "action_modality": "must_do",
+    "intent": "reduce CO concentration in the affected area to a safe level (air-quality / personal_safety)",
+    "intent_target": { "target_sensor": "sensor.kitchen_co", "desired_direction": "DECREASE" }
+  },
+  "fallback": "execute original action: open kitchen window (= TAPFixer / current-system behavior) when no reverse exception activates",
+
+  "sigmas": [
+    {
+      "sigma_id": "P52.seed",
+      "kind": "seed",
+      "label": "CO detected -> reduce CO (default: open window)",
+      "activation": "sensor.kitchen_co crosses danger threshold",
+      "protect_target": "personal_safety",
+      "direction": "enforce",
+      "temporal_scope": "instant",
+      "intent": "reduce CO to safe level",
+      "action_pool_abstract": ["increase_outdoor_air_exchange", "extract_at_source", "mechanical_ventilation"],
+      "action_pool_grounded": [
+        {"action": "cover.kitchen_window.open_cover", "decreases_co": true, "chain": "R12->fan_on->R3->close LR window", "side_effects": ["living_room_co2:DECREASE", "cover.living_room_window:closed"], "chain_depth": 2},
+        {"action": "switch.range_hood.turn_on", "decreases_co": true, "chain": "none", "side_effects": [], "chain_depth": 0},
+        {"action": "fan.ventilation_fan.turn_on", "decreases_co": true, "chain": "R3->close LR window", "side_effects": ["living_room_co2:DECREASE", "cover.living_room_window:closed"], "chain_depth": 1}
+      ],
+      "observable": "yes",
+      "signal_source": "sensor.kitchen_co",
+      "static_rewriteable": true,
+      "note": "TAPFixer fixes the action to 'open window'. We keep open-window as fallback but expose the full grounded pool."
+    },
+
+    {
+      "sigma_id": "P52.fwd.gas_source",
+      "kind": "forward",
+      "label": "CO detected AND a gas appliance is the likely source -> also cut the source (coordinate with P.37/P.39)",
+      "activation": "sensor.kitchen_co rising AND a gas appliance (water heater / valve) is active AND NO cooking activity",
+      "protect_target": "personal_safety",
+      "direction": "enforce",
+      "temporal_scope": "instant",
+      "intent": "stop CO production at the source, not only ventilate",
+      "action_pool_abstract": ["cut_gas_source", "ventilate"],
+      "action_pool_grounded": [
+        {"action": "switch.main_water_valve / gas-valve shutoff (P.39)", "note": "source elimination; pairs with ventilation"}
+      ],
+      "observable": "partial",
+      "signal_source": "appliance states + absence of cooking activity label",
+      "static_rewriteable": false,
+      "note": "This is where P.52, P.37, P.39 must be coordinated; TAPFixer keeps them as three independent static properties with no runtime coordination."
+    },
+
+    {
+      "sigma_id": "P52.rev.cooking_infant",
+      "kind": "reverse",
+      "label": "CO rise is from COOKING (smoke+CO co-rise, hood already on) AND an infant is sleeping nearby -> do NOT open the window; extract at source instead",
+      "activation": "sensor.kitchen_co rising AND binary_sensor.kitchen_smoke=on AND activity=cooking AND binary_sensor.crib_occupancy=on (infant sleeping in adjacent room)",
+      "protect_target": "personal_safety",
+      "direction": "reverse",
+      "temporal_scope": "instant",
+      "intent": "reduce CO WITHOUT opening a window that draws cooking fumes toward the child room or chills the sleeping infant",
+      "action_pool_abstract": ["extract_at_source"],
+      "action_pool_grounded": [
+        {"action": "switch.range_hood.turn_on", "decreases_co": true, "chain": "none", "side_effects": [], "chain_depth": 0, "rationale": "simulator confirms range_hood reduces kitchen CO with ZERO chain and ZERO side effects; window-open instead triggers a 2-hop chain (R12->fan->R3) and is an outdoor-air exchange that risks fume spread / chilling the infant"}
+      ],
+      "observable": "partial",
+      "signal_source": "co-rise of smoke+CO, range_hood already on, cooking activity label, crib_occupancy",
+      "static_rewriteable": false,
+      "note": "CORE DELTA vs TAPFixer/PaCR: the distinction 'cooking fumes vs gas leak' depends on the CAUSE (smoke+CO co-rise + hood-on + cooking label), readable only from the trajectory+activity, not from the trigger instant. A static rewrite of P.52 cannot encode 'open window UNLESS the CO is cooking-caused and an infant sleeps nearby'."
+    },
+
+    {
+      "sigma_id": "P52.rev.window_chain_conflict",
+      "kind": "reverse",
+      "label": "Opening the window would trigger a harmful chain in the current world -> prefer a chain-free equivalent",
+      "activation": "the grounded forward trace of 'open window' contains an undesired chained actuation in the CURRENT world_state",
+      "protect_target": "comfort",
+      "direction": "soften",
+      "temporal_scope": "instant",
+      "intent": "achieve the same CO reduction while avoiding collateral actuation of unrelated devices",
+      "action_pool_abstract": ["extract_at_source", "mechanical_ventilation"],
+      "action_pool_grounded": [
+        {"action": "switch.range_hood.turn_on", "rationale": "chain-free per simulator; open-window causes R12->R3 closing the living-room window as collateral"}
+      ],
+      "observable": "yes",
+      "signal_source": "Function A forward_simulate over current world_state",
+      "static_rewriteable": false,
+      "note": "This exception is GENERATED BY THE SIMULATOR, not by hand: whether 'open window' has a bad chain depends on live world_state, so it can only be decided at runtime."
+    }
+  ],
+
+  "user_checklist": [
+    "When the CO rise looks like COOKING (smoke + CO rise together, range hood already on) and a baby is sleeping nearby, turn on the RANGE HOOD instead of opening the window — keep this? [Y/N]",
+    "When CO is detected and a gas appliance is on with no one cooking, also CUT the gas source (not just ventilate) — keep this? [Y/N]",
+    "When opening the window would cause other devices to react (e.g. close the living-room window), prefer the range hood that has no such side effect — keep this? [Y/N]",
+    "Add your own exception: ____"
+  ]
+}

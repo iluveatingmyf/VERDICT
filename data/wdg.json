@@ -46,8 +46,6 @@
      "capabilities": ["ventilation", "co2_reduction", "outdoor_air_exchange"]},
     {"id": "camera.living_room_camera", "area": "living_room", "class": "camera",
      "capabilities": ["surveillance"]},
-    {"id": "vacuum.robot_vacuum", "area": "living_room", "class": "vacuum",
-     "capabilities": ["cleaning"]},
 
     {"id": "sensor.kitchen_co", "area": "kitchen", "class": "sensor",
      "measures": "co", "domain": "continuous", "unit": "ppm"},

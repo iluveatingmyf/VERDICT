@@ -1,0 +1,35 @@
+======================================================================
+目标：降低 kitchen CO（desired_direction = DECREASE）
+======================================================================
+
+Function B 找到 6 个 grounded 候选动作：
+
+[1] 动作: fan.ventilation_fan.turn_on   (经由能力: (direct-edge))
+    物理副作用: sensor.living_room_co2:DECREASE
+
+[2] 动作: switch.range_hood.turn_on   (经由能力: (direct-edge))
+    物理副作用: (无)
+
+[3] 动作: cover.kitchen_window.open_cover   (经由能力: (direct-edge))
+    物理副作用: sensor.living_room_co2:DECREASE
+
+[4] 动作: switch.turn_on   (经由能力: co_reduction)
+    物理副作用: (无)
+
+[5] 动作: fan.turn_on   (经由能力: co2_reduction)
+    物理副作用: sensor.living_room_co2:DECREASE
+
+[6] 动作: cover.open_cover   (经由能力: ventilation)
+    物理副作用: sensor.living_room_co2:DECREASE
+
+======================================================================
+对比：默认规则 auto_safety_co_ventilation 提出的动作 = 开厨房窗 (cover.kitchen_window.open_cover)
+我们看看默认动作'开窗'的完整前向后果链：
+======================================================================
+  Step 0:
+    [LOGICAL R12] fan.ventilation_fan -> STATE=on
+    [CAUSAL  C:cover.kitchen_window->sensor.kitchen_co@open] sensor.kitchen_co -> DECREASE  (channel=air_quality)
+  Step 1:
+    [LOGICAL R3] cover.living_room_window -> STATE=closed
+    [CAUSAL  C:fan.ventilation_fan->sensor.kitchen_co@on] sensor.kitchen_co -> DECREASE  (channel=air_quality)
+    [CAUSAL  C:fan.ventilation_fan->sensor.living_room_co2@on] sensor.living_room_co2 -> DECREASE  (channel=air_quality)
