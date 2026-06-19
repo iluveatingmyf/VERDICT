@@ -1,0 +1,200 @@
+{
+  "reconstructed_signals": {
+    "time": "deep_night",
+    "occupancy": "present_multiple",
+    "activity": "sleeping",
+    "trajectory": "sudden_spike",
+    "cause_evidence": "uncorroborated",
+    "external_alarm": "none"
+  },
+  "cause_coupling_verdict": "uncorroborated",
+  "activations": [
+    {
+      "sigma_id": "co_window.SCOPE.outdoor_air_cleaner",
+      "verdict": "unknown",
+      "relied_on": [],
+      "confidence": 0.8,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "No outdoor air quality sensor present; cannot determine if outside air is cleaner than inside."
+    },
+    {
+      "sigma_id": "co_window.SCOPE.occupant_present",
+      "verdict": "active",
+      "relied_on": [
+        "person.beth: home",
+        "person.alex: home",
+        "binary_sensor.crib_occupancy: on",
+        "binary_sensor.bedroom_bed_occupancy: on"
+      ],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "Multiple occupants are present; opening the window protects real persons."
+    },
+    {
+      "sigma_id": "co_window.SCOPE.dilution_is_sufficient",
+      "verdict": "inactive",
+      "relied_on": [
+        "sensor.kitchen_co: 90",
+        "trajectory: sudden_spike"
+      ],
+      "confidence": 0.9,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "CO level 90 ppm with sudden spike is not low/stable; in-place ventilation may be insufficient."
+    },
+    {
+      "sigma_id": "co_window.EXCEPT.intruding_outdoor_source",
+      "verdict": "unknown",
+      "relied_on": [],
+      "confidence": 0.8,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "No outdoor CO or air quality data; cannot assess if an outdoor source exists."
+    },
+    {
+      "sigma_id": "co_window.EXCEPT.dangerous_concentration",
+      "verdict": "active",
+      "relied_on": [
+        "sensor.kitchen_co: 90",
+        "trajectory: sudden_spike from 5 to 90 in 8 min"
+      ],
+      "confidence": 0.8,
+      "violated_by_proposed_action": true,
+      "violation_effect": "Opening window may delay evacuation and exposes occupants to dangerous CO instead of prompting immediate evacuation.",
+      "reason": "CO is high and climbed rapidly; concentration is dangerous, requiring evacuation alert, not in-place ventilation."
+    },
+    {
+      "sigma_id": "co_window.EXCEPT.unoccupied_home",
+      "verdict": "inactive",
+      "relied_on": [
+        "person.beth: home",
+        "person.alex: home",
+        "binary_sensor.crib_occupancy: on"
+      ],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "Home is occupied; the condition 'no occupant present' does not hold."
+    },
+    {
+      "sigma_id": "co_window.GENERALIZE.any_airborne_hazard",
+      "verdict": "active",
+      "relied_on": [
+        "sensor.kitchen_co: 90"
+      ],
+      "confidence": 0.9,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "CO level 90 ppm makes indoor air hazardous to breathe; the requirement to restore breathable air is raised."
+    },
+    {
+      "sigma_id": "co_window.GENERALIZE.any_ventilation_or_source_channel",
+      "verdict": "active",
+      "relied_on": [
+        "sensor.kitchen_co: 90"
+      ],
+      "confidence": 0.9,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "Breathable air must be restored; opening a window is one of the allowed channels and does not conflict with the requirement to use the most effective means."
+    },
+    {
+      "sigma_id": "lock_away.SCOPE.sole_occupant",
+      "verdict": "inactive",
+      "relied_on": [
+        "person.beth: home",
+        "person.alex: home"
+      ],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "No departing user; multiple occupants are home."
+    },
+    {
+      "sigma_id": "lock_away.SCOPE.no_active_emergency",
+      "verdict": "inactive",
+      "relied_on": [
+        "sensor.kitchen_co: 90"
+      ],
+      "confidence": 0.7,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "High CO spike constitutes an active emergency; the precondition 'no active emergency' is false."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.vulnerable_occupant_remains",
+      "verdict": "inactive",
+      "relied_on": [],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "No user is leaving the home."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.emergency_in_progress",
+      "verdict": "inactive",
+      "relied_on": [
+        "alarm_control_panel.home_alarm: armed_night",
+        "binary_sensor.kitchen_smoke: off"
+      ],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "No emergency alarm (fire/CO/medical) has fired; home alarm is armed but not triggered."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.unsecurable_door",
+      "verdict": "inactive",
+      "relied_on": [
+        "binary_sensor.door_sensor: off",
+        "lock.main_door_lock: locked"
+      ],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "Door is closed and locked; no obstruction or ajar state detected."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.brief_excursion_imminent_return",
+      "verdict": "inactive",
+      "relied_on": [],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "No 'away' or brief excursion detected; all occupants are home."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.already_secured",
+      "verdict": "inactive",
+      "relied_on": [],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "none",
+      "reason": "No 'away' condition has fired; the entry path being locked is irrelevant."
+    },
+    {
+      "sigma_id": "lock_away.GENERALIZE.any_unguarded_entry_path",
+      "verdict": "active",
+      "relied_on": [
+        "input_select.sleep_mode: on",
+        "activity: sleeping",
+        "time: deep_night",
+        "binary_sensor.bedroom_bed_occupancy: on",
+        "binary_sensor.crib_occupancy: on"
+      ],
+      "confidence": 0.9,
+      "violated_by_proposed_action": true,
+      "violation_effect": "Opening the kitchen window creates an exploitable entry path while all occupants are asleep and not actively guarding access.",
+      "reason": "All occupants are sleeping and non-vigilant; the perimeter must remain secured, but opening the window creates an unguarded entry path."
+    }
+  ],
+  "active_set": [
+    "co_window.SCOPE.occupant_present",
+    "co_window.EXCEPT.dangerous_concentration",
+    "co_window.GENERALIZE.any_airborne_hazard",
+    "co_window.GENERALIZE.any_ventilation_or_source_channel",
+    "lock_away.GENERALIZE.any_unguarded_entry_path"
+  ]
+}

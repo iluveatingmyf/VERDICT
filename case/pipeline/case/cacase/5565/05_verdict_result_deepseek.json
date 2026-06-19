@@ -1,0 +1,15 @@
+{
+  "winning_requirement": null,
+  "winning_protect_target": null,
+  "verdict": "ALLOW",
+  "chosen_alternative": null,
+  "dsl_plan": [],
+  "rationale": "The proposed action (opening kitchen window to ventilate CO) does not violate any active requirement. All active requirements protect personal safety, and the action directly serves them by reducing CO and restoring breathable air. No intervention is necessary.",
+  "reusable_constraint": {
+    "when_situation": "airborne hazard (CO >50 ppm, smoke) detected and dwelling occupied",
+    "forbid_or_require": "REQUIRE",
+    "action_class": "activating ventilation channels (e.g., opening windows, turning on exhaust fans) to restore breathable air",
+    "protect_target": "personal_safety",
+    "reason": "When airborne hazards threaten occupant health, ventilation must be enabled to maintain safe indoor air quality."
+  }
+}

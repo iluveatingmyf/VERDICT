@@ -1,0 +1,162 @@
+{
+  "reconstructed_signals": {
+    "time": "evening",
+    "occupancy": "occupied (2 adults + baby in crib)",
+    "activity": "cooking",
+    "trajectory": "rising, currently 62 ppm CO, recently crossed 50 ppm threshold",
+    "cause_evidence": "explainable: indoor gas cooking producing CO, kitchen smoke detected",
+    "external_alarm": "none"
+  },
+  "cause_coupling_verdict": "explainable",
+  "activations": [
+    {
+      "sigma_id": "co_window.SCOPE.outdoor_air_cleaner",
+      "verdict": "unknown",
+      "relied_on": ["cause-evidence"],
+      "confidence": 0.9,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "No outdoor air quality data available to compare indoor vs outdoor; cannot determine if outside air is cleaner."
+    },
+    {
+      "sigma_id": "co_window.SCOPE.occupant_present",
+      "verdict": "active",
+      "relied_on": ["occupancy"],
+      "confidence": 0.95,
+      "violated_by_proposed_action": false,
+      "violation_effect": "Opening window helps protect occupant by ventilating CO.",
+      "reason": "Multiple occupants home (adults) and baby in crib, so at least one person present who needs breathable air."
+    },
+    {
+      "sigma_id": "co_window.SCOPE.dilution_is_sufficient",
+      "verdict": "inactive",
+      "relied_on": ["trajectory"],
+      "confidence": 0.9,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "CO level is 62 ppm and rising rapidly, not low/stable; therefore ventilation in place may not be sufficient, this requirement not raised."
+    },
+    {
+      "sigma_id": "co_window.EXCEPT.intruding_outdoor_source",
+      "verdict": "inactive",
+      "relied_on": ["cause-evidence"],
+      "confidence": 0.95,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "Evidence indicates indoor cooking source, no outdoor source detected; opening window will not increase indoor concentration from outdoors."
+    },
+    {
+      "sigma_id": "co_window.EXCEPT.dangerous_concentration",
+      "verdict": "inactive",
+      "relied_on": ["trajectory"],
+      "confidence": 0.85,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "CO 62 ppm is above safe threshold but not acutely dangerous; rising but rate slowing, ventilation likely adequate."
+    },
+    {
+      "sigma_id": "co_window.EXCEPT.unoccupied_home",
+      "verdict": "inactive",
+      "relied_on": ["occupancy"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "Home is occupied by adults and baby."
+    },
+    {
+      "sigma_id": "co_window.GENERALIZE.any_airborne_hazard",
+      "verdict": "active",
+      "relied_on": ["cause-evidence", "occupancy"],
+      "confidence": 0.95,
+      "violated_by_proposed_action": false,
+      "violation_effect": "Opening window restores breathable air by exhausting CO and smoke.",
+      "reason": "CO >50 ppm and smoke present, indoor air hazardous; occupied, so requirement to restore breathable air is raised."
+    },
+    {
+      "sigma_id": "co_window.GENERALIZE.any_ventilation_or_source_channel",
+      "verdict": "active",
+      "relied_on": ["cause-evidence"],
+      "confidence": 0.9,
+      "violated_by_proposed_action": false,
+      "violation_effect": "Opening kitchen window is a plausible effective channel; no evidence it is suboptimal compared to alternatives.",
+      "reason": "Airborne hazard exists, so the chosen action must be the most effective channel; activation condition met."
+    },
+    {
+      "sigma_id": "lock_away.SCOPE.sole_occupant",
+      "verdict": "inactive",
+      "relied_on": ["occupancy"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "No user is departing; all occupants are home, multiple present."
+    },
+    {
+      "sigma_id": "lock_away.SCOPE.no_active_emergency",
+      "verdict": "inactive",
+      "relied_on": ["external-alarm"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "Situation does not involve a locking-away scenario; no active emergency that would conflict, but requirement not raised."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.vulnerable_occupant_remains",
+      "verdict": "inactive",
+      "relied_on": ["occupancy"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "No user is leaving; condition not met."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.emergency_in_progress",
+      "verdict": "inactive",
+      "relied_on": ["external-alarm"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "No away condition, and no emergency alarm (home_alarm disarmed, kitchen_smoke sensor not a siren)."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.unsecurable_door",
+      "verdict": "inactive",
+      "relied_on": ["cause-evidence"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "Door is closed and locked, not obstructed or ajar."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.brief_excursion_imminent_return",
+      "verdict": "inactive",
+      "relied_on": ["trajectory"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "No away/not-nearby reading; all occupants home."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.already_secured",
+      "verdict": "inactive",
+      "relied_on": ["activity"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "No away condition firing; door already locked but scenario not active."
+    },
+    {
+      "sigma_id": "lock_away.GENERALIZE.any_unguarded_entry_path",
+      "verdict": "inactive",
+      "relied_on": ["occupancy"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "Authorized occupants are home and vigilant, not away or sleeping; perimeter is guarded."
+    }
+  ],
+  "active_set": [
+    "co_window.SCOPE.occupant_present",
+    "co_window.GENERALIZE.any_airborne_hazard",
+    "co_window.GENERALIZE.any_ventilation_or_source_channel"
+  ]
+}

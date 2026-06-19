@@ -1,0 +1,640 @@
+You are an advanced smart-home property mediator performing ACTIVATION JUDGEMENT. Your goal is to determine which formal security specifications (Sigmas) are currently triggered by a specific real-time incident.
+### INPUTS AVAILABLE
+1. SITUATION: A JSON containing `device_schema`, a chronological sequence of device `snapshots` (where differences between consecutive states constitute events), an `activity` field from a background sequence model, and the triggering automation rule (`trigger` and `proposed_action`).
+2. SIGMA LIBRARY: A list of confirmed security specification fragments. Each contains an `activation` predicate, `signal_class`, `observable` status, `protect_target`, and `abstract_action`.
+---
+### EXECUTION PIPELINE
+#### STEP 1 - Signal Reconstruction & Cause Coupling
+Reconstruct the operational context into 6 dimensions. For the `activity` field, STRICTLY TRUST the provided situation value unless its confidence is low or label is idle/unknown.
+*CRITICAL KEY TEST (Cause Coupling):* Analyze the state change of the variable that fired the trigger. Evaluate the relationship between the background `activity` and this physical telemetry change:
+1. "explainable": The current activity naturally produces this telemetry change as a by-product (i.e., the ongoing activity is itself a known cause of this kind of reading rising).
+2. "physical_hazard": The activity does not explain the reading, BUT an active physical source/appliance capable of producing this effect is present/running in the snapshots.
+3. "uncorroborated": The telemetry reading jumps abruptly with NO logical connection to the current activity AND NO supporting physical source in the home.
+#### STEP 2 - Two-Stage Sigma Evaluation
+A sigma's `activation` is a PURE-SITUATION requirement: it states what must be upheld GIVEN THE SITUATION ALONE. It does NOT mention the proposed_action. Evaluate in two stages.
+
+STAGE 2A - Requirement activation (situation only, IGNORE proposed_action):
+For EVERY sigma, decide whether its situational requirement is RAISED by the reconstructed signals:
+- `active` (requirement raised): the situational precondition in `activation` is ENTAILED by Step-1 signals. Do NOT restrict activation to sigmas related to the trigger — judge every sigma against the situation on its own terms.
+  CRITICAL distinction — is the `activation` a STANDING REQUIREMENT or an EVENT PREDICATE?
+   * A STANDING REQUIREMENT mandates that some state be MAINTAINED while a situation holds (it describes the goal to keep, not an event that happened). Its activation is decided SOLELY by whether its situational precondition holds (e.g. an occupancy/time/presence condition). Whether the world CURRENTLY already satisfies the maintained state is IRRELEVANT to activation: a "keep X while S" requirement is `active` whenever S holds, EVEN IF X is currently satisfied — because its job is to prevent X from being broken. Never judge such a sigma `inactive` on the grounds that "nothing is currently violated" or "things currently look fine"; current compliance is checked later in 2B, not here.
+   * An EVENT PREDICATE describes a specific occurrence that must be present in the signals to fire. It is `active` only if that occurrence is entailed.
+   Read each sigma's `activation` to decide which kind it is, then apply the matching test.
+- `inactive`: the situation does not raise this requirement (its situational precondition is contradicted/absent).
+- `unknown`: the needed `signal_class` is ABSENT or unmeasured in the situation. Do NOT infer it from unrelated readings, do NOT assume a default, do NOT reason "probably X" — absence of the required signal means `unknown`, full stop. (e.g. if no outdoor-air data exists, any sigma needing outdoor comparison is `unknown`, not active/inactive.)
+- `prompt_user`: matches but `observable`=="no".
+*Mapping Guide:* a sigma relying on `cause-evidence` must align with the Step-1 cause-coupling verdict.
+
+STAGE 2B - Compliance check (now bring in proposed_action):
+For each sigma marked `active` in 2A, additionally assess whether the SITUATION's `proposed_action`, if executed, would VIOLATE that raised requirement. Derive the action's effect simply (e.g. an open-cover service call results in that cover/opening becoming OPEN). Report this as a separate field `violated_by_proposed_action`: true/false, with the effect you derived. (This does NOT change the 2A verdict; it tells the downstream mediator which active requirements the action breaks.)
+#### STEP 3 - Justification
+For each evaluated sigma, provide the verdict, a list of specific signals relied upon, a confidence score (0.0 to 1.0), and a concise, one-line logical deduction.
+---
+### OUTPUT FORMAT
+Output the results in raw JSON format ONLY. Ensure no markdown formatting errors.
+{
+  "reconstructed_signals": {
+    "time": "...", "occupancy": "...", "activity": "...",
+    "trajectory": "...", "cause_evidence": "...", "external_alarm": "..."
+  },
+  "cause_coupling_verdict": "explainable | physical_hazard | uncorroborated",
+  "activations": [
+    {"sigma_id": "...", "verdict": "active | inactive | unknown | prompt_user",
+     "relied_on": ["..."], "confidence": 0.0,
+     "violated_by_proposed_action": false, "violation_effect": "...",
+     "reason": "..."}
+  ],
+  "active_set": ["sigma_id_1", "sigma_id_2"]
+}
+
+---
+### CALIBRATION EXAMPLE (illustrates ONLY the Step-1 cause-coupling judgement; an unrelated domain, not part of the test)
+
+Trigger fired: bathroom_humidity crossed a high threshold. Three different situations, same trigger:
+
+(a) activity="showering" (confidence 0.9); snapshots show shower running, humidity climbing steadily during the shower.
+    -> cause_coupling = "explainable": the ongoing activity naturally produces rising humidity as a by-product.
+
+(b) activity="sleeping" (humidity unrelated to it), BUT a water-leak sensor reads wet and humidity climbs.
+    -> cause_coupling = "physical_hazard": activity does not explain it, but a real physical source (leak) is present.
+
+(c) activity="idle"; humidity value jumps abruptly from 40 to 85 in one snapshot, no shower, no leak sensor, no water source active.
+    -> cause_coupling = "uncorroborated": neither the activity nor any physical source accounts for the jump.
+
+Apply this same three-way reasoning to the trigger variable in the real SITUATION below. The domain there will differ; the reasoning is identical.
+
+
+===== SIGMA LIBRARY (16 fragments) =====
+[
+  {
+    "sigma_id": "co_window.SCOPE.outdoor_air_cleaner",
+    "from_property": "P_co_open_window",
+    "activation": "the contaminant source is indoors and the outside air is cleaner than inside, so venting to outside actually lowers the indoor concentration",
+    "signal_class": "cause-evidence",
+    "observable": "partial",
+    "protect_target": "personal_safety",
+    "abstract_action": "restore_breathable_air"
+  },
+  {
+    "sigma_id": "co_window.SCOPE.occupant_present",
+    "from_property": "P_co_open_window",
+    "activation": "at least one occupant is present (or will imminently breathe this air), so removing the toxic gas protects a real person",
+    "signal_class": "occupancy",
+    "observable": "yes",
+    "protect_target": "personal_safety",
+    "abstract_action": "restore_breathable_air"
+  },
+  {
+    "sigma_id": "co_window.SCOPE.dilution_is_sufficient",
+    "from_property": "P_co_open_window",
+    "activation": "the detected level is low/stable enough that ventilating in place is a sufficient and timely response, rather than a level that demands immediate evacuation",
+    "signal_class": "trajectory",
+    "observable": "partial",
+    "protect_target": "personal_safety",
+    "abstract_action": "restore_breathable_air"
+  },
+  {
+    "sigma_id": "co_window.EXCEPT.intruding_outdoor_source",
+    "from_property": "P_co_open_window",
+    "activation": "evidence that the CO (or hazardous gas) originates outdoors and is higher outside than inside — e.g. wildfire smoke, an idling engine in an attached garage venting toward the opening, a neighbor's generator, exhaust pooling under the window; opening the envelope would increase the indoor concentration",
+    "signal_class": "cause-evidence",
+    "observable": "partial",
+    "protect_target": "personal_safety",
+    "abstract_action": "seal_living_envelope"
+  },
+  {
+    "sigma_id": "co_window.EXCEPT.dangerous_concentration",
+    "from_property": "P_co_open_window",
+    "activation": "the concentration is high or climbing rapidly so that in-place ventilation cannot bring the air back to safe quickly enough; occupants are at acute risk",
+    "signal_class": "trajectory",
+    "observable": "partial",
+    "protect_target": "personal_safety",
+    "abstract_action": "alert_occupants_and_prompt_evacuation"
+  },
+  {
+    "sigma_id": "co_window.EXCEPT.unoccupied_home",
+    "from_property": "P_co_open_window",
+    "activation": "no occupant is present, so the immediate breathe-safe benefit of opening is near-zero, while physically opening the envelope exposes the home to weather/intrusion; the gas should still be addressed",
+    "signal_class": "occupancy",
+    "observable": "yes",
+    "protect_target": "physical_security",
+    "abstract_action": "isolate_emission_source_and_alert"
+  },
+  {
+    "sigma_id": "co_window.GENERALIZE.any_airborne_hazard",
+    "from_property": "P_co_open_window",
+    "activation": "occupied indoor air becomes hazardous to breathe by ANY airborne contaminant or asphyxiant — not just CO, but a natural-gas/methane leak, smoke and combustion products from a fire, a refrigerant leak, radon accumulation, sewer gas / hydrogen sulfide, a dangerous CO2 buildup in a sealed or crowded room, solvent/VOC fumes, or oxygen displacement by a leaking inert gas — i.e. any case where breathing the air becomes unsafe, including the non-obvious ones the original CO trigger never named",
+    "signal_class": "cause-evidence",
+    "observable": "partial",
+    "protect_target": "personal_safety",
+    "abstract_action": "restore_breathable_air"
+  },
+  {
+    "sigma_id": "co_window.GENERALIZE.any_ventilation_or_source_channel",
+    "from_property": "P_co_open_window",
+    "activation": "the means of restoring breathable air extends well beyond a window: any openable aperture (window, exterior door, skylight, roof/trickle vent); any powered ventilation (bathroom/kitchen exhaust fan, range hood, whole-house fan, HVAC fresh-air/purge mode); and the non-obvious non-opening channels — shutting a gas-supply valve, de-energizing a leaking combustion appliance, stopping a running engine, or running an air scrubber/purifier; whichever channel most lowers the contaminant in occupied air is the appropriate means",
+    "signal_class": "cause-evidence",
+    "observable": "partial",
+    "protect_target": "personal_safety",
+    "abstract_action": "restore_breathable_air"
+  },
+  {
+    "sigma_id": "lock_away.SCOPE.sole_occupant",
+    "from_property": "P_lock_when_away",
+    "activation": "the departing user is the only authorized occupant and no other person or dependent being remains inside who would need the perimeter to stay openable; sealing the dwelling strands no one",
+    "signal_class": "occupancy",
+    "observable": "partial",
+    "protect_target": "physical_security",
+    "abstract_action": "maintain_secured_perimeter_when_unattended"
+  },
+  {
+    "sigma_id": "lock_away.SCOPE.no_active_emergency",
+    "from_property": "P_lock_when_away",
+    "activation": "no fire/smoke/medical/intrusion-in-progress event is active that would make a sealed-and-hard-locked perimeter counterproductive; security is the correct priority at this moment",
+    "signal_class": "cause-evidence",
+    "observable": "partial",
+    "protect_target": "physical_security",
+    "abstract_action": "maintain_secured_perimeter_when_unattended"
+  },
+  {
+    "sigma_id": "lock_away.EXCEPT.vulnerable_occupant_remains",
+    "from_property": "P_lock_when_away",
+    "activation": "after the user leaves, a person or being who cannot reliably operate the lock remains inside (young child, frail/elderly person, disabled occupant, guest, confined pet); a hard-sealed perimeter could trap them in an egress emergency",
+    "signal_class": "occupancy",
+    "observable": "partial",
+    "protect_target": "personal_safety",
+    "abstract_action": "secure_against_entry_while_preserving_egress"
+  },
+  {
+    "sigma_id": "lock_away.EXCEPT.emergency_in_progress",
+    "from_property": "P_lock_when_away",
+    "activation": "while away, an interior emergency alarm fires (fire/smoke, CO, medical alarm) indicating responders or occupants need the perimeter openable",
+    "signal_class": "external-alarm",
+    "observable": "yes",
+    "protect_target": "personal_safety",
+    "abstract_action": "enable_emergency_responder_access"
+  },
+  {
+    "sigma_id": "lock_away.EXCEPT.unsecurable_door",
+    "from_property": "P_lock_when_away",
+    "activation": "the door is physically obstructed, jammed, or left ajar so that commanding a locked state would either fail silently (appearing secure while not), force against an obstruction, or damage the mechanism",
+    "signal_class": "cause-evidence",
+    "observable": "partial",
+    "protect_target": "physical_security",
+    "abstract_action": "report_unsecurable_perimeter"
+  },
+  {
+    "sigma_id": "lock_away.EXCEPT.brief_excursion_imminent_return",
+    "from_property": "P_lock_when_away",
+    "activation": "the 'away / not nearby' reading is a brief excursion (curbside mail, trash, stepping just outside) with an imminent return and the resident may carry no means of re-entry; immediate locking risks stranding the authorized resident while serving negligible security",
+    "signal_class": "trajectory",
+    "observable": "partial",
+    "protect_target": "task_completion",
+    "abstract_action": "defer_and_recheck"
+  },
+  {
+    "sigma_id": "lock_away.EXCEPT.already_secured",
+    "from_property": "P_lock_when_away",
+    "activation": "at the moment the away condition fires, the entry path is already in a verified locked/secured state, so re-actuation accomplishes nothing",
+    "signal_class": "activity",
+    "observable": "yes",
+    "protect_target": "energy",
+    "abstract_action": "no_action"
+  },
+  {
+    "sigma_id": "lock_away.GENERALIZE.any_unguarded_entry_path",
+    "from_property": "P_lock_when_away",
+    "activation": "any entry/access path into the dwelling is left exploitable while no authorized occupant is actively guarding access. 'Entry/access path' covers not only the front door but any back/side door, the garage pedestrian door, the garage vehicle door, a sliding patio door, an accessible ground-floor or basement window, a person-sized pet door, an unlatched perimeter gate, AND non-physical channels such as an active temporary/guest access code, a one-time-share link still live, or a smart-access system left in a remotely-grantable/unauthenticated state. 'No authorized occupant guarding access' covers not only the resident being physically away / out of the geofence, but also the household having entered an extended-absence or vacation state, or all occupants being asleep and non-vigilant overnight",
+    "signal_class": "occupancy",
+    "observable": "partial",
+    "protect_target": "physical_security",
+    "abstract_action": "maintain_secured_perimeter_when_unattended"
+  }
+]
+
+===== SITUATION =====
+{
+  "meta": {
+    "situation_id": "sit_co_spurious_sleeping_deep_night_8310",
+    "time_of_day": "deep_night",
+    "cause_mode_FOR_GENERATION_ONLY": "spurious"
+  },
+  "device_schema": [
+    "input_select.user_location",
+    "lock.main_door_lock",
+    "binary_sensor.door_sensor",
+    "binary_sensor.living_room_motion",
+    "sensor.temperature",
+    "sensor.co2_sensor",
+    "sensor.living_room_pm25",
+    "media_player.living_room_tv",
+    "light.living_room_light",
+    "media_player.smart_speaker",
+    "cover.living_room_window",
+    "climate.air_conditioner",
+    "fan.air_purifier",
+    "input_boolean.security_camera",
+    "fan.ventilation_fan",
+    "binary_sensor.crib_occupancy",
+    "cover.child_room_window",
+    "input_boolean.child_is_active",
+    "light.child_room_nightlight",
+    "sensor.kitchen_co",
+    "switch.range_hood",
+    "input_boolean.pet_feeder_trigger",
+    "input_boolean.water_dispenser",
+    "cover.kitchen_window",
+    "binary_sensor.kitchen_smoke",
+    "input_boolean.kitchen_light",
+    "light.bedroom_light",
+    "light.bedside_lamp_alex",
+    "cover.bedroom_curtains",
+    "binary_sensor.bedroom_bed_occupancy",
+    "climate.heater",
+    "light.bathroom_light",
+    "sensor.bathroom_humidity",
+    "fan.bathroom_fan",
+    "binary_sensor.bathroom_motion",
+    "binary_sensor.garage_door_sensor",
+    "switch.main_power_switch",
+    "binary_sensor.pc_power",
+    "light.study_light",
+    "input_select.sleep_mode",
+    "person.beth",
+    "person.alex",
+    "alarm_control_panel.home_alarm",
+    "sensor.living_room_illuminance",
+    "switch.gas_water_heater"
+  ],
+  "snapshots": [
+    {
+      "t_min_before_trigger": -60,
+      "states": [
+        "home",
+        "locked",
+        "off",
+        "off",
+        20.0,
+        600,
+        10.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "on",
+        "closed",
+        "off",
+        "on",
+        5.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        45.0,
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        "on",
+        "home",
+        "home",
+        "armed_night",
+        1.0,
+        "off"
+      ]
+    },
+    {
+      "t_min_before_trigger": -45,
+      "states": [
+        "home",
+        "locked",
+        "off",
+        "off",
+        20.0,
+        640,
+        10.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "on",
+        "closed",
+        "off",
+        "on",
+        5.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        45.0,
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        "on",
+        "home",
+        "home",
+        "armed_night",
+        1.0,
+        "off"
+      ]
+    },
+    {
+      "t_min_before_trigger": -33,
+      "states": [
+        "home",
+        "locked",
+        "off",
+        "off",
+        20.0,
+        640,
+        10.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "on",
+        "closed",
+        "off",
+        "on",
+        5.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        47.0,
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        "on",
+        "home",
+        "home",
+        "armed_night",
+        1.0,
+        "off"
+      ]
+    },
+    {
+      "t_min_before_trigger": -40,
+      "states": [
+        "home",
+        "locked",
+        "off",
+        "off",
+        20.0,
+        640,
+        10.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "on",
+        "closed",
+        "off",
+        "on",
+        5.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        47.0,
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        "on",
+        "home",
+        "home",
+        "armed_night",
+        1.0,
+        "off"
+      ]
+    },
+    {
+      "t_min_before_trigger": -24,
+      "states": [
+        "home",
+        "locked",
+        "off",
+        "off",
+        20.0,
+        640,
+        10.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "on",
+        "closed",
+        "off",
+        "on",
+        5.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        47.0,
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        "on",
+        "home",
+        "home",
+        "armed_night",
+        1.0,
+        "off"
+      ]
+    },
+    {
+      "t_min_before_trigger": -8,
+      "states": [
+        "home",
+        "locked",
+        "off",
+        "off",
+        20.0,
+        640,
+        10.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "on",
+        "closed",
+        "off",
+        "on",
+        5.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        47.0,
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        "on",
+        "home",
+        "home",
+        "armed_night",
+        1.0,
+        "off"
+      ]
+    },
+    {
+      "t_min_before_trigger": 0,
+      "states": [
+        "home",
+        "locked",
+        "off",
+        "off",
+        20.0,
+        640,
+        10.0,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "on",
+        "closed",
+        "off",
+        "on",
+        90,
+        "off",
+        "off",
+        "off",
+        "closed",
+        "off",
+        "off",
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        47.0,
+        "off",
+        "off",
+        "closed",
+        "on",
+        "off",
+        "off",
+        "on",
+        "home",
+        "home",
+        "armed_night",
+        1.0,
+        "off"
+      ]
+    }
+  ],
+  "activity": {
+    "label": "sleeping",
+    "confidence": 0.9,
+    "source": "background_sequence_model"
+  },
+  "trigger": {
+    "entity": "sensor.kitchen_co",
+    "kind": "numeric_state",
+    "above": 50,
+    "value_now": 90
+  },
+  "proposed_action": {
+    "rule_id": "R11",
+    "service": "cover.open_cover",
+    "target": "cover.kitchen_window",
+    "designed_intent": "open window to ventilate CO (P.52)"
+  }
+}
+
+Now perform STEP 1-3 and output the JSON only.

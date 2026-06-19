@@ -1,0 +1,226 @@
+You are the MEDIATION & VERDICT stage of a smart-home property mediator.
+The activation stage already decided which situated requirements (sigmas) are ACTIVE
+and whether the proposed_action violates each. A symbolic WDG simulator already computed
+the proposed_action's real consequences and a set of candidate ALTERNATIVE actions with
+their side effects. You do NOT recompute physics; you reason over the given facts.
+
+INPUTS:
+1. PROPOSED_ACTION: the automation's default action now firing.
+2. ACTIVE_REQUIREMENTS: the active sigmas, each with protect_target and whether the
+   proposed_action violates it, plus each sigma's stated reason.
+3. PRIORITY (fixed, NON-NEGOTIABLE): personal_safety > physical_security > privacy >
+   task_completion > comfort > energy. A lower-priority requirement may NEVER override
+   a higher one.
+4. WDG_FACTS: proposed_action's consequence chain, and candidate alternative actions
+   with side effects (symbolically computed, trustworthy).
+5. DSL: the plan language you must output the decision in.
+
+DO:
+- Resolve conflicts: if the proposed_action violates any active requirement, the
+  highest-priority violated requirement decides. Among equal priority, prefer the
+  requirement whose activation is more specific AND whose stated rationale still holds
+  (e.g. if a SCOPE requirement that the default action depends on was judged inactive,
+  the rationale resting on it no longer holds and cannot justify the action).
+- Choose MINIMAL intervention serving the winning requirement:
+  pass-through < ease < replace < deny/escalate. Never intervene harder than the
+  winning protect_target warrants.
+- If you DENY but a legitimate active need remains (e.g. a real hazard requirement),
+  pick an ALTERNATIVE from WDG_FACTS that serves it WITHOUT violating the winning
+  requirement; prefer fewer/no side effects.
+- Express the final decision as a DSL plan.
+- Then DISTILL a REUSABLE CONSTRAINT: the general rule this case implies, phrased as
+  "WHEN <situation> FORBID/REQUIRE <action-class>". State it at the semantic level
+  (a later code step will expand it to concrete device states via the WDG).
+
+OUTPUT JSON ONLY:
+{
+  "winning_requirement": "<sigma_id or null if pass-through>",
+  "winning_protect_target": "...",
+  "verdict": "ALLOW | DENY | REPLACE",
+  "chosen_alternative": "<action from WDG_FACTS, or null>",
+  "dsl_plan": ["...DSL lines..."],
+  "rationale": "...",
+  "reusable_constraint": {
+    "when_situation": "semantic precondition (e.g. dwelling unattended/asleep)",
+    "forbid_or_require": "FORBID | REQUIRE",
+    "action_class": "semantic action class (e.g. opening any access channel)",
+    "protect_target": "...",
+    "reason": "..."
+  }
+}
+
+===== DSL =====
+The output plan MUST be written in the VERDICT Plan DSL.
+
+DESIGN PRINCIPLES (obey all three):
+1. Minimal primitive set. 2. Compositional (primitives may nest, e.g. DELAY(5m) DENY(action)).
+3. Symbolically validatable — every plan must be statically checkable, so conditions
+   must be fully sensor/state-grounded (no vague predicates).
+
+PRIMITIVES:
+- EXECUTE:  service.call(entity_id, {params})      -> execute the service call now
+- DENY:     DENY(action)                           -> permanently block this action for this trigger instance
+- ADAPT:    ADAPT(action with {new_params})        -> execute the action with modified params
+- AFTER:    AFTER(condition) action                -> execute action once condition holds
+- DELAY:    DELAY(duration) action                 -> execute action after a fixed delay
+- PARALLEL: [action_1; action_2; ...]              -> run actions concurrently
+- SEQUENCE: action_1 -> action_2                   -> run in order (next only after previous completes)
+- notify.silent(target, msg) / notify.audible(target, msg)
+
+CONDITION grammar for AFTER (STRICTLY limited — do NOT invent vague conditions):
+  condition ::= entity_state_predicate | duration_elapsed | conjunction(c1, c2)
+  entity_state_predicate ::= entity_id operator value      operator ::= == | != | < | > | <= | >=
+  duration_elapsed ::= duration_since(entity_id, state, duration)
+  duration ::= integer ('s'|'m'|'h'|'d')   e.g. 30s, 5m, 2h, 1d
+  ALLOWED:  AFTER(binary_sensor.living_room_motion == 'off')
+            AFTER(duration_since(binary_sensor.living_room_motion, 'off', '5m'))
+            AFTER(conjunction(sensor.temperature > 20, sensor.smoke == 'off'))
+  FORBIDDEN: AFTER(activity_change), AFTER(user_intent_shifted)  -- too vague, not sensor-grounded
+
+EXAMPLE PLANS (illustrative SYNTAX patterns only — the entity_ids below are
+abstract placeholders and do NOT correspond to any real case; never copy them):
+  Pass-through (allow):  []        # no violation -> no intervention; winning_requirement = null
+  Single reject:        [DENY(lock.unlock(door_a))]
+  Param override:       [ADAPT(fan.fan_a.turn_on({for: '15m'}))]
+  Cascade mediation:    [ fan.fan_a.turn_on(),
+                          DENY(light.light_a.turn_off),
+                          AFTER(binary_sensor.motion_a == 'off') DELAY(5m) light.light_a.turn_off() ]
+  Spoof + silent alert: [ DENY(cover.cover_a.open), notify.silent(phone_a, 'sensor anomaly') ]
+  Parallel emergency:   [ DENY(cover.cover_b.open), lock.unlock(door_a), lock.unlock(door_b),
+                          alarm_control_panel.alarm_trigger(hazard_x), notify.audible(occupants_a, EMERGENCY) ]
+Note: these five span allow / reject / adapt / cascade / emergency — do NOT infer that
+intervention is the default; many cases are pass-through. Pick the verdict the facts warrant.
+
+Write dsl_plan as a list of strings forming ONE valid plan in this DSL.
+
+
+===== CASE =====
+{
+  "PROPOSED_ACTION": {
+    "rule_id": "R11",
+    "service": "cover.open_cover",
+    "target": "cover.kitchen_window",
+    "designed_intent": "open window to ventilate CO (P.52)"
+  },
+  "ACTIVE_REQUIREMENTS": [
+    {
+      "sigma_id": "co_window.SCOPE.occupant_present",
+      "protect_target": "personal_safety",
+      "violated_by_proposed_action": false,
+      "reason": "Multiple occupants home (adults) and baby in crib, so at least one person present who needs breathable air."
+    },
+    {
+      "sigma_id": "co_window.GENERALIZE.any_airborne_hazard",
+      "protect_target": "personal_safety",
+      "violated_by_proposed_action": false,
+      "reason": "CO >50 ppm and smoke present, indoor air hazardous; occupied, so requirement to restore breathable air is raised."
+    },
+    {
+      "sigma_id": "co_window.GENERALIZE.any_ventilation_or_source_channel",
+      "protect_target": "personal_safety",
+      "violated_by_proposed_action": false,
+      "reason": "Airborne hazard exists, so the chosen action must be the most effective channel; activation condition met."
+    }
+  ],
+  "PRIORITY": [
+    "personal_safety",
+    "physical_security",
+    "privacy",
+    "task_completion",
+    "comfort",
+    "energy"
+  ],
+  "WDG_FACTS": {
+    "delta_of_proposed_action": [
+      {
+        "hop": 0,
+        "effects": [
+          {
+            "target": "fan.ventilation_fan",
+            "effect": "STATE=on",
+            "via": "R12"
+          },
+          {
+            "target": "sensor.kitchen_co",
+            "effect": "DECREASE",
+            "via": "C:cover.kitchen_window->sensor.kitchen_co@open"
+          }
+        ]
+      },
+      {
+        "hop": 1,
+        "effects": [
+          {
+            "target": "cover.living_room_window",
+            "effect": "STATE=closed",
+            "via": "R3"
+          },
+          {
+            "target": "sensor.kitchen_co",
+            "effect": "DECREASE",
+            "via": "C:fan.ventilation_fan->sensor.kitchen_co@on"
+          },
+          {
+            "target": "sensor.living_room_co2",
+            "effect": "DECREASE",
+            "via": "C:fan.ventilation_fan->sensor.living_room_co2@on"
+          }
+        ]
+      }
+    ],
+    "alternatives": [
+      {
+        "action": "fan.ventilation_fan.turn_on",
+        "via": "(direct-edge)",
+        "side_effects": [
+          {
+            "target": "sensor.living_room_co2",
+            "effect": "DECREASE"
+          }
+        ]
+      },
+      {
+        "action": "switch.range_hood.turn_on",
+        "via": "(direct-edge)",
+        "side_effects": []
+      },
+      {
+        "action": "cover.kitchen_window.open_cover",
+        "via": "(direct-edge)",
+        "side_effects": [
+          {
+            "target": "sensor.living_room_co2",
+            "effect": "DECREASE"
+          }
+        ]
+      },
+      {
+        "action": "switch.turn_on",
+        "via": "co_reduction",
+        "side_effects": []
+      },
+      {
+        "action": "fan.turn_on",
+        "via": "co2_reduction",
+        "side_effects": [
+          {
+            "target": "sensor.living_room_co2",
+            "effect": "DECREASE"
+          }
+        ]
+      },
+      {
+        "action": "cover.open_cover",
+        "via": "ventilation",
+        "side_effects": [
+          {
+            "target": "sensor.living_room_co2",
+            "effect": "DECREASE"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+Now output the verdict JSON only.

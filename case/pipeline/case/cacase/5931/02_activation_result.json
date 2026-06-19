@@ -1,0 +1,162 @@
+{
+  "reconstructed_signals": {
+    "time": "evening",
+    "occupancy": "occupied (Beth, Alex, child in crib)",
+    "activity": "idle (confidence 0.3)",
+    "trajectory": "rising CO from 5 to 55 ppm over ~40 minutes",
+    "cause_evidence": "indoor source suspected; gas_water_heater turned on at t-40, coinciding with CO rise; no outdoor air quality data",
+    "external_alarm": "none"
+  },
+  "cause_coupling_verdict": "physical_hazard",
+  "activations": [
+    {
+      "sigma_id": "co_window.SCOPE.outdoor_air_cleaner",
+      "verdict": "unknown",
+      "relied_on": ["sensor.kitchen_co", "switch.gas_water_heater on"],
+      "confidence": 0.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "opening kitchen window would ventilate with unknown outdoor air quality",
+      "reason": "Outdoor air quality is unmeasured, so it cannot be determined if outside air is cleaner than inside."
+    },
+    {
+      "sigma_id": "co_window.SCOPE.occupant_present",
+      "verdict": "active",
+      "relied_on": ["person.beth", "person.alex", "binary_sensor.crib_occupancy"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "opening window improves air for present occupants",
+      "reason": "Multiple occupants are present (Beth, Alex, child), so removing toxic gas protects real persons."
+    },
+    {
+      "sigma_id": "co_window.SCOPE.dilution_is_sufficient",
+      "verdict": "inactive",
+      "relied_on": ["sensor.kitchen_co trajectory rising"],
+      "confidence": 0.9,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "CO level is rising from 5 to 55 ppm, not stable or low enough to guarantee in-place ventilation alone is sufficient."
+    },
+    {
+      "sigma_id": "co_window.EXCEPT.intruding_outdoor_source",
+      "verdict": "inactive",
+      "relied_on": ["switch.gas_water_heater on", "sensor.kitchen_co rise after heater on"],
+      "confidence": 0.8,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "Gas water heater turned on just before CO rise, indicating indoor source; no evidence of outdoor origin."
+    },
+    {
+      "sigma_id": "co_window.EXCEPT.dangerous_concentration",
+      "verdict": "inactive",
+      "relied_on": ["sensor.kitchen_co 55 ppm, rising slowly"],
+      "confidence": 0.85,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "CO at 55 ppm with moderate rise is not yet an acutely dangerous concentration demanding immediate evacuation."
+    },
+    {
+      "sigma_id": "co_window.EXCEPT.unoccupied_home",
+      "verdict": "inactive",
+      "relied_on": ["person.beth", "person.alex"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "Home is occupied, so opening the window provides an immediate breathe-safe benefit."
+    },
+    {
+      "sigma_id": "co_window.GENERALIZE.any_airborne_hazard",
+      "verdict": "active",
+      "relied_on": ["sensor.kitchen_co > 50"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "opening window restores breathable air",
+      "reason": "Carbon monoxide is an airborne contaminant that makes indoor air hazardous to breathe."
+    },
+    {
+      "sigma_id": "co_window.GENERALIZE.any_ventilation_or_source_channel",
+      "verdict": "active",
+      "relied_on": ["sensor.kitchen_co high", "cover.kitchen_window closed"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "opening kitchen window is a valid ventilation channel",
+      "reason": "Any appropriate ventilation channel should be used to restore breathable air; a window is one such channel."
+    },
+    {
+      "sigma_id": "lock_away.SCOPE.sole_occupant",
+      "verdict": "inactive",
+      "relied_on": ["person.beth", "person.alex", "binary_sensor.crib_occupancy"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "No departing user; multiple occupants are present, not a sole-occupant-leaving scenario."
+    },
+    {
+      "sigma_id": "lock_away.SCOPE.no_active_emergency",
+      "verdict": "inactive",
+      "relied_on": [],
+      "confidence": 0.9,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "Home is attended and no locking context exists; the requirement to ensure no emergency when locking is not raised."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.vulnerable_occupant_remains",
+      "verdict": "inactive",
+      "relied_on": [],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "No user is leaving; the condition of a vulnerable occupant remaining after a departure is not met."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.emergency_in_progress",
+      "verdict": "inactive",
+      "relied_on": [],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "No away condition and no fire/smoke/medical alarm is active; CO event is not listed as triggering this exception."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.unsecurable_door",
+      "verdict": "inactive",
+      "relied_on": ["binary_sensor.door_sensor off", "lock.main_door_lock locked"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "Door is closed and locked, not obstructed or ajar, and no locking action is being taken."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.brief_excursion_imminent_return",
+      "verdict": "inactive",
+      "relied_on": [],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "No away/not-nearby reading exists; all persons are home."
+    },
+    {
+      "sigma_id": "lock_away.EXCEPT.already_secured",
+      "verdict": "inactive",
+      "relied_on": [],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "The away condition is not firing, so the requirement to check if already secured is not raised."
+    },
+    {
+      "sigma_id": "lock_away.GENERALIZE.any_unguarded_entry_path",
+      "verdict": "inactive",
+      "relied_on": ["person.beth home", "person.alex home"],
+      "confidence": 1.0,
+      "violated_by_proposed_action": false,
+      "violation_effect": "",
+      "reason": "Occupants are present and guarding access; home is not unattended."
+    }
+  ],
+  "active_set": [
+    "co_window.SCOPE.occupant_present",
+    "co_window.GENERALIZE.any_airborne_hazard",
+    "co_window.GENERALIZE.any_ventilation_or_source_channel"
+  ]
+}

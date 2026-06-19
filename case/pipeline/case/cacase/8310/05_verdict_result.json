@@ -1,0 +1,23 @@
+{
+  "winning_requirement": "co_window.EXCEPT.dangerous_concentration",
+  "winning_protect_target": "personal_safety",
+  "verdict": "REPLACE",
+  "chosen_alternative": null,
+  "dsl_plan": [
+    "DENY(cover.kitchen_window.open_cover)",
+    "EXECUTE(alarm_control_panel.main.alarm_trigger('co_hazard'))",
+    "notify.audible(occupants, 'Dangerous CO level! Evacuate immediately.')"
+  ],
+  "rationale": "The proposed action violates personal_safety (dangerous CO concentration requires evacuation alert, not in-place ventilation) and physical_security (opening window creates unguarded entry path while occupants sleep). The highest-priority violation is personal_safety. The winning requirement explicitly demands evacuation alert, so the window open is denied and replaced by an audible evacuation alarm, addressing the CO hazard without compromising perimeter security.",
+  "interaction_prompt": null,
+  "reusable_constraint": {
+    "reusable": true,
+    "reuse_basis": "Driven by a standing safety requirement with a stable, observable trigger: indoor CO concentration exceeding a dangerous threshold in occupied areas. This is not a one-off event or dependent on an uncorroborated reading.",
+    "when_situation": "indoor CO concentration exceeds dangerous threshold AND occupants are present in the home",
+    "forbid_or_require": "FORBID",
+    "action_class": "in-place ventilation actions (opening windows or activating fans for air exchange)",
+    "target_device_class": ["access_channel", "powered_ventilation"],
+    "protect_target": "personal_safety",
+    "reason": "Dangerous CO levels demand immediate evacuation, not in-place air exchange, which may be ineffective or create secondary risks (e.g., unsecured entry paths). Evacuation alert is the correct protective action."
+  }
+}
