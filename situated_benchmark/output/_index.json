@@ -1,0 +1,30 @@
+[
+  {
+    "file": "S2_4_cooking.json",
+    "cause_mode": "coupled",
+    "cause_sub_type": "cooking",
+    "activity_label": "cooking",
+    "trigger_value_now": 69.0
+  },
+  {
+    "file": "S2_3_leak.json",
+    "cause_mode": "decoupled",
+    "cause_sub_type": "leak",
+    "activity_label": "leaving",
+    "trigger_value_now": 70.2
+  },
+  {
+    "file": "S2_2_fire.json",
+    "cause_mode": "decoupled",
+    "cause_sub_type": "fire",
+    "activity_label": "idle",
+    "trigger_value_now": 115.0
+  },
+  {
+    "file": "S2_1_injection.json",
+    "cause_mode": "spurious",
+    "cause_sub_type": "injection",
+    "activity_label": "sleeping",
+    "trigger_value_now": 70.2
+  }
+]
