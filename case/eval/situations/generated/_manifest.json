@@ -1,0 +1,38 @@
+[
+  {
+    "id": "sit_co_coupled_cooking_evening_8992",
+    "cause_mode": "coupled", "activity": "cooking", "time": "evening", "co": 62,
+    "gt": ["co_window.SCOPE.occupant_present", "co_window.GENERALIZE.any_airborne_hazard"],
+    "review_note": "CO=62<70 未判危险高浓度，dangerous_concentration 未列；如认为62已危险则加上"
+  },
+  {
+    "id": "sit_co_decoupled_idle_evening_7712",
+    "cause_mode": "decoupled", "activity": "idle", "time": "evening", "co": 55,
+    "gt": ["co_window.SCOPE.occupant_present", "co_window.GENERALIZE.any_airborne_hazard"],
+    "review_note": "真泄漏但CO=55<70；idle≠无人值守故无lock_away"
+  },
+  {
+    "id": "sit_co_decoupled_idle_evening_5931",
+    "cause_mode": "decoupled", "activity": "idle", "time": "evening", "co": 55,
+    "gt": ["co_window.SCOPE.occupant_present", "co_window.GENERALIZE.any_airborne_hazard"],
+    "review_note": "同上"
+  },
+  {
+    "id": "sit_co_spurious_sleeping_deep_night_8310",
+    "cause_mode": "spurious", "activity": "sleeping", "time": "deep_night", "co": 90,
+    "gt": ["co_window.SCOPE.occupant_present", "co_window.EXCEPT.dangerous_concentration", "co_window.GENERALIZE.any_airborne_hazard", "lock_away.GENERALIZE.any_unguarded_entry_path"],
+    "review_note": "注入+睡觉。按'不赌信号假'CO类激活+招牌σ激活；CO=90判危险。若选'不算'则删CO类仅留lock_away"
+  },
+  {
+    "id": "sit_co_coupled_cooking_evening_5565",
+    "cause_mode": "coupled", "activity": "cooking", "time": "evening", "co": 62,
+    "gt": ["co_window.SCOPE.occupant_present", "co_window.GENERALIZE.any_airborne_hazard"],
+    "review_note": "CO=62<70 同8992"
+  },
+  {
+    "id": "sit_co_spurious_sleeping_evening_8966",
+    "cause_mode": "spurious", "activity": "sleeping", "time": "evening", "co": 62,
+    "gt": ["co_window.SCOPE.occupant_present", "co_window.GENERALIZE.any_airborne_hazard", "lock_away.GENERALIZE.any_unguarded_entry_path"],
+    "review_note": "注入+睡觉但CO=62<70故无dangerous_concentration；招牌σ激活"
+  }
+]

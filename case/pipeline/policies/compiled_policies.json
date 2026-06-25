@@ -1,0 +1,69 @@
+{
+  "_meta": {
+    "desc": "compiled pure-device-state policies; runtime lookup, no LLM"
+  },
+  "policies": [
+    {
+      "constraint_id": "c_8310",
+      "source_verdict": {
+        "winning": "co_window.EXCEPT.dangerous_concentration",
+        "verdict": "REPLACE"
+      },
+      "WHEN_static": [],
+      "WHEN_dynamic": [],
+      "forbid_or_require": "FORBID",
+      "targets": [
+        {
+          "entity": "cover.child_room_window",
+          "to_state": "open_or_unlock",
+          "via_token": "access_channel"
+        },
+        {
+          "entity": "lock.front_door",
+          "to_state": "open_or_unlock",
+          "via_token": "access_channel"
+        },
+        {
+          "entity": "cover.bedroom_window",
+          "to_state": "open_or_unlock",
+          "via_token": "access_channel"
+        },
+        {
+          "entity": "cover.kitchen_window",
+          "to_state": "open_or_unlock",
+          "via_token": "access_channel"
+        },
+        {
+          "entity": "switch.range_hood",
+          "to_state": "on",
+          "via_token": "powered_ventilation"
+        },
+        {
+          "entity": "fan.bathroom_fan",
+          "to_state": "on",
+          "via_token": "powered_ventilation"
+        },
+        {
+          "entity": "cover.living_room_window",
+          "to_state": "open_or_unlock",
+          "via_token": "access_channel"
+        },
+        {
+          "entity": "fan.ventilation_fan",
+          "to_state": "on",
+          "via_token": "powered_ventilation"
+        }
+      ],
+      "verdict": "REPLACE",
+      "protect_target": "personal_safety",
+      "priority_rank": 1,
+      "reuse_basis": "Driven by a standing safety requirement with a stable, observable trigger: indoor CO concentration exceeding a dangerous threshold in occupied areas. This is not a one-off event or dependent on an uncorroborated reading.",
+      "pure_device_state": true,
+      "reusable_without_llm": true,
+      "merged_from": [
+        "c_8310",
+        "c_8310"
+      ]
+    }
+  ]
+}

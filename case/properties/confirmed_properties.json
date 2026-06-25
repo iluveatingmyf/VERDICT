@@ -1,0 +1,90 @@
+{
+  "_meta": {
+    "description": "用户用【升级后 skill(GENERALIZE 强制枚举外延)】重新生成的两组 σ 全集。这是当前正式库。",
+    "protect_target_priority": ["personal_safety","physical_security","privacy","task_completion","comfort","energy"],
+    "confirmed_from": ["P_co_open_window","P_lock_when_away"],
+    "version": "v2_post_skill_upgrade",
+    "note": "GENERALIZE σ 的 activation 已显式枚举泛化外延(含非显而易见成员)；价值层为有意的居所价值ontology。"
+  },
+  "sigmas": [
+    {"sigma_id":"co_window.SCOPE.outdoor_air_cleaner","from_property":"P_co_open_window","move":"SCOPE",
+     "activation":"the contaminant source is indoors and the outside air is cleaner than inside, so venting to outside actually lowers the indoor concentration",
+     "protect_target":"personal_safety","temporal_scope":"sustaining","intent_served":"restore_breathable_air",
+     "abstract_action":"restore_breathable_air","observable":"partial","signal_class":"cause-evidence","static_rewriteable":true,"derived":false},
+
+    {"sigma_id":"co_window.SCOPE.occupant_present","from_property":"P_co_open_window","move":"SCOPE",
+     "activation":"at least one occupant is present (or will imminently breathe this air), so removing the toxic gas protects a real person",
+     "protect_target":"personal_safety","temporal_scope":"sustaining","intent_served":"restore_breathable_air",
+     "abstract_action":"restore_breathable_air","observable":"yes","signal_class":"occupancy","static_rewriteable":true,"derived":false},
+
+    {"sigma_id":"co_window.SCOPE.dilution_is_sufficient","from_property":"P_co_open_window","move":"SCOPE",
+     "activation":"the detected level is low/stable enough that ventilating in place is a sufficient and timely response, rather than a level that demands immediate evacuation",
+     "protect_target":"personal_safety","temporal_scope":"sustaining","intent_served":"restore_breathable_air",
+     "abstract_action":"restore_breathable_air","observable":"partial","signal_class":"trajectory","static_rewriteable":true,"derived":false},
+
+    {"sigma_id":"co_window.EXCEPT.intruding_outdoor_source","from_property":"P_co_open_window","move":"EXCEPT",
+     "activation":"evidence that the CO (or hazardous gas) originates outdoors and is higher outside than inside — e.g. wildfire smoke, an idling engine in an attached garage venting toward the opening, a neighbor's generator, exhaust pooling under the window; opening the envelope would increase the indoor concentration",
+     "protect_target":"personal_safety","temporal_scope":"sustaining","intent_served":"restore_breathable_air",
+     "abstract_action":"seal_living_envelope","observable":"partial","signal_class":"cause-evidence","static_rewriteable":false,"derived":false},
+
+    {"sigma_id":"co_window.EXCEPT.dangerous_concentration","from_property":"P_co_open_window","move":"EXCEPT",
+     "activation":"the concentration is high or climbing rapidly so that in-place ventilation cannot bring the air back to safe quickly enough; occupants are at acute risk",
+     "protect_target":"personal_safety","temporal_scope":"instant","intent_served":"restore_breathable_air",
+     "abstract_action":"alert_occupants_and_prompt_evacuation","observable":"partial","signal_class":"trajectory","static_rewriteable":false,"derived":false},
+
+    {"sigma_id":"co_window.EXCEPT.unoccupied_home","from_property":"P_co_open_window","move":"EXCEPT",
+     "activation":"no occupant is present, so the immediate breathe-safe benefit of opening is near-zero, while physically opening the envelope exposes the home to weather/intrusion; the gas should still be addressed",
+     "protect_target":"physical_security","temporal_scope":"sustaining","intent_served":"restore_breathable_air",
+     "abstract_action":"isolate_emission_source_and_alert","observable":"yes","signal_class":"occupancy","static_rewriteable":false,"derived":false},
+
+    {"sigma_id":"co_window.GENERALIZE.any_airborne_hazard","from_property":"P_co_open_window","move":"GENERALIZE",
+     "activation":"occupied indoor air becomes hazardous to breathe by ANY airborne contaminant or asphyxiant — not just CO, but a natural-gas/methane leak, smoke and combustion products from a fire, a refrigerant leak, radon accumulation, sewer gas / hydrogen sulfide, a dangerous CO2 buildup in a sealed or crowded room, solvent/VOC fumes, or oxygen displacement by a leaking inert gas — i.e. any case where breathing the air becomes unsafe, including the non-obvious ones the original CO trigger never named",
+     "protect_target":"personal_safety","temporal_scope":"sustaining","intent_served":"restore_breathable_air",
+     "abstract_action":"restore_breathable_air","observable":"partial","signal_class":"cause-evidence","static_rewriteable":false,"derived":true},
+
+    {"sigma_id":"co_window.GENERALIZE.any_ventilation_or_source_channel","from_property":"P_co_open_window","move":"GENERALIZE",
+     "activation":"the means of restoring breathable air extends well beyond a window: any openable aperture (window, exterior door, skylight, roof/trickle vent); any powered ventilation (bathroom/kitchen exhaust fan, range hood, whole-house fan, HVAC fresh-air/purge mode); and the non-obvious non-opening channels — shutting a gas-supply valve, de-energizing a leaking combustion appliance, stopping a running engine, or running an air scrubber/purifier; whichever channel most lowers the contaminant in occupied air is the appropriate means",
+     "protect_target":"personal_safety","temporal_scope":"sustaining","intent_served":"restore_breathable_air",
+     "abstract_action":"restore_breathable_air","observable":"partial","signal_class":"cause-evidence","static_rewriteable":false,"derived":true},
+
+    {"sigma_id":"lock_away.SCOPE.sole_occupant","from_property":"P_lock_when_away","move":"SCOPE",
+     "activation":"the departing user is the only authorized occupant and no other person or dependent being remains inside who would need the perimeter to stay openable; sealing the dwelling strands no one",
+     "protect_target":"physical_security","temporal_scope":"sustaining","intent_served":"maintain_secured_perimeter_when_unattended",
+     "abstract_action":"maintain_secured_perimeter_when_unattended","observable":"partial","signal_class":"occupancy","static_rewriteable":false,"derived":false},
+
+    {"sigma_id":"lock_away.SCOPE.no_active_emergency","from_property":"P_lock_when_away","move":"SCOPE",
+     "activation":"no fire/smoke/medical/intrusion-in-progress event is active that would make a sealed-and-hard-locked perimeter counterproductive; security is the correct priority at this moment",
+     "protect_target":"physical_security","temporal_scope":"sustaining","intent_served":"maintain_secured_perimeter_when_unattended",
+     "abstract_action":"maintain_secured_perimeter_when_unattended","observable":"partial","signal_class":"cause-evidence","static_rewriteable":false,"derived":false},
+
+    {"sigma_id":"lock_away.EXCEPT.vulnerable_occupant_remains","from_property":"P_lock_when_away","move":"EXCEPT",
+     "activation":"after the user leaves, a person or being who cannot reliably operate the lock remains inside (young child, frail/elderly person, disabled occupant, guest, confined pet); a hard-sealed perimeter could trap them in an egress emergency",
+     "protect_target":"personal_safety","temporal_scope":"sustaining","intent_served":"preserve_occupant_egress",
+     "abstract_action":"secure_against_entry_while_preserving_egress","observable":"partial","signal_class":"occupancy","static_rewriteable":false,"derived":false},
+
+    {"sigma_id":"lock_away.EXCEPT.emergency_in_progress","from_property":"P_lock_when_away","move":"EXCEPT",
+     "activation":"while away, an interior emergency alarm fires (fire/smoke, CO, medical alarm) indicating responders or occupants need the perimeter openable",
+     "protect_target":"personal_safety","temporal_scope":"sustaining","intent_served":"enable_life_safety_access",
+     "abstract_action":"enable_emergency_responder_access","observable":"yes","signal_class":"external-alarm","static_rewriteable":false,"derived":false},
+
+    {"sigma_id":"lock_away.EXCEPT.unsecurable_door","from_property":"P_lock_when_away","move":"EXCEPT",
+     "activation":"the door is physically obstructed, jammed, or left ajar so that commanding a locked state would either fail silently (appearing secure while not), force against an obstruction, or damage the mechanism",
+     "protect_target":"physical_security","temporal_scope":"instant","intent_served":"achieve_genuine_perimeter_security",
+     "abstract_action":"report_unsecurable_perimeter","observable":"partial","signal_class":"cause-evidence","static_rewriteable":false,"derived":false},
+
+    {"sigma_id":"lock_away.EXCEPT.brief_excursion_imminent_return","from_property":"P_lock_when_away","move":"EXCEPT",
+     "activation":"the 'away / not nearby' reading is a brief excursion (curbside mail, trash, stepping just outside) with an imminent return and the resident may carry no means of re-entry; immediate locking risks stranding the authorized resident while serving negligible security",
+     "protect_target":"task_completion","temporal_scope":"instant","intent_served":"avoid_locking_out_resident",
+     "abstract_action":"defer_and_recheck","observable":"partial","signal_class":"trajectory","static_rewriteable":false,"derived":false},
+
+    {"sigma_id":"lock_away.EXCEPT.already_secured","from_property":"P_lock_when_away","move":"EXCEPT",
+     "activation":"at the moment the away condition fires, the entry path is already in a verified locked/secured state, so re-actuation accomplishes nothing",
+     "protect_target":"energy","temporal_scope":"instant","intent_served":"avoid_redundant_actuation",
+     "abstract_action":"no_action","observable":"yes","signal_class":"activity","static_rewriteable":true,"derived":false},
+
+    {"sigma_id":"lock_away.GENERALIZE.any_unguarded_entry_path","from_property":"P_lock_when_away","move":"GENERALIZE",
+     "activation":"any entry/access path into the dwelling is left exploitable while no authorized occupant is actively guarding access. 'Entry/access path' covers not only the front door but any back/side door, the garage pedestrian door, the garage vehicle door, a sliding patio door, an accessible ground-floor or basement window, a person-sized pet door, an unlatched perimeter gate, AND non-physical channels such as an active temporary/guest access code, a one-time-share link still live, or a smart-access system left in a remotely-grantable/unauthenticated state. 'No authorized occupant guarding access' covers not only the resident being physically away / out of the geofence, but also the household having entered an extended-absence or vacation state, or all occupants being asleep and non-vigilant overnight",
+     "protect_target":"physical_security","temporal_scope":"sustaining","intent_served":"maintain_secured_perimeter_when_unattended",
+     "abstract_action":"maintain_secured_perimeter_when_unattended","observable":"partial","signal_class":"occupancy","static_rewriteable":false,"derived":true}
+  ]
+}

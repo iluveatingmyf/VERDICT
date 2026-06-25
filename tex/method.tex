@@ -1,0 +1,76 @@
+\section{Methodo}
+
+\begin{figure*}[t]
+\centering
+\footnotesize
+\begin{tikzpicture}[
+  >=Stealth, node distance=10mm,
+  prop/.style={draw=black, rounded corners=2pt, fill=gray!5, align=left,
+               text width=43mm, inner sep=6pt},
+  llm/.style={draw=black, rounded corners=2pt, fill=blue!6, align=center,
+              text width=29mm, inner sep=6pt},
+  sig/.style={draw=black!55, rounded corners=2pt, fill=gray!3, align=left,
+              text width=53mm, inner sep=5pt, font=\scriptsize},
+]
+
+% ---------- LEFT: input property ----------
+\node[prop] (prop) {%
+  \textbf{Input: property $P$}\\[3pt]
+  \emph{NL:}~IF the authorized user is away / outside the near-home zone,
+            the door should be locked.\\[3pt]
+  \emph{LTL:}~$\varphi_P=\Box(\mathit{away}\!\rightarrow\!\Diamond\,\mathit{locked})$\\[3pt]
+  \emph{Skeleton:}\\
+  $\cdot$ trigger:\ \texttt{away}\\
+  $\cdot$ action:\ \texttt{lock\_door} (\textsc{must\_do})\\
+  $\cdot$ intent$\uparrow$:\ \texttt{maintain\_secured\_}\\
+  \hphantom{$\cdot$ intent$\uparrow$:\ }\texttt{perimeter\_when\_unattended}
+};
+
+% ---------- MIDDLE: constrained LLM ----------
+\node[llm, right=13mm of prop] (llm) {%
+  \textbf{LLM}\\[1pt] projection\\[4pt]
+  \scriptsize via\\
+  \textsc{Scope}\,$\cdot$\,\textsc{Except}\,$\cdot$\,\textsc{Generalize}
+};
+\node[align=center, below=2.5mm of llm, text width=33mm, font=\scriptsize] (constr){%
+  constrained by fixed operators,\\
+  a closed \texttt{protect\_target} ontology\\
+  ($\mathit{safety}\!>\!\cdots\!>\!\mathit{energy}$),\\
+  and one fixed output schema};
+
+% ---------- RIGHT: structured sigma set ----------
+\node[sig, right=13mm of llm] (s2){%
+  \textbf{$\sigma_2$\,--\,\textsc{Except}}\ \ \texttt{vulnerable\_occupant\_remains}\\
+  \emph{activation:} a person who cannot operate the lock remains inside\\
+  \emph{protect:} \texttt{personal\_safety}\ \ \emph{action:} \texttt{secure\_against\_}\\
+  \texttt{entry\_while\_preserving\_egress}\\
+  \emph{observable:} partial\ \ \emph{signal:} occupancy\\
+  \emph{static\_rw:} \textbf{false}\ \ \emph{derived:} false};
+\node[sig, above=3.5mm of s2] (s1){%
+  \textbf{$\sigma_1$\,--\,\textsc{Scope}}\ \ \texttt{no\_active\_emergency}\\
+  \emph{activation:} no in-progress fire/CO/medical/intrusion event\\
+  \emph{protect:} \texttt{physical\_security}\ \ \emph{action:} \emph{default}\\
+  \emph{observable:} partial\ \ \emph{signal:} cause-evidence\\
+  \emph{static\_rw:} \textbf{false}\ \ \emph{derived:} false};
+\node[sig, below=3.5mm of s2] (s3){%
+  \textbf{$\sigma_3$\,--\,\textsc{Generalize}}\ \ \texttt{any\_unguarded\_entry\_path}\\
+  \emph{activation:} any access path (door/window/garage/pet-door/\\
+  guest-code/remote-grant) left exploitable while unguarded\\
+  \emph{protect:} \texttt{physical\_security}\ \ \emph{action:} \emph{default}\\
+  \emph{observable:} partial\ \ \emph{signal:} occupancy\\
+  \emph{static\_rw:} false\ \ \emph{derived:} \textbf{true}};
+
+% group the sigmas
+\begin{scope}[on background layer]
+  \node[draw=black!30, dashed, rounded corners=3pt, fit=(s1)(s3), inner sep=5pt,
+        label={[font=\scriptsize]above:\textbf{Output: situated fragments $\Sigma_P$}}]
+        (sigbox) {};
+\end{scope}
+
+% ---------- arrows ----------
+\draw[->, thick] (prop) -- (llm);
+\draw[->, thick] (llm)  -- (sigbox.west);
+
+\end{tikzpicture}
+\caption{\label{fig:projection} ...}  % 见第 3 部分
+\end{figure*}
