@@ -1,0 +1,374 @@
+{
+  "S2.4_cooking": {
+    "gt": "allow",
+    "n": 30,
+    "activity_dist": {
+      "Cooking": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": [
+      56.4,
+      82.5
+    ],
+    "co_occurring_count": 15
+  },
+  "S2.3_leak": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Away": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": [
+      61.5,
+      86.4
+    ],
+    "co_occurring_count": 0
+  },
+  "S2.2_fire": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Away": 8,
+      "Child_Playing_Supervised": 8,
+      "Having_Dinner": 7,
+      "Idle_At_Home": 7
+    },
+    "weather_dist": {
+      "Sunny_Day": 30
+    },
+    "trigger_range": [
+      101.7,
+      138.7
+    ],
+    "co_occurring_count": 10
+  },
+  "S2.1_injection": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Sleeping": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": [
+      59.0,
+      84.1
+    ],
+    "co_occurring_count": 9
+  },
+  "S2.7_real_leak": {
+    "gt": "allow",
+    "n": 30,
+    "activity_dist": {
+      "Away": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": null,
+    "co_occurring_count": 0
+  },
+  "S2.8_steam": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Taking_a_Shower": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 30
+    },
+    "trigger_range": null,
+    "co_occurring_count": 0
+  },
+  "S2.15_spoof": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Idle_At_Home": 5,
+      "Away": 9,
+      "Cooking": 5,
+      "Child_Playing_Supervised": 6,
+      "Having_Dinner": 5
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": null,
+    "co_occurring_count": 12
+  },
+  "S2.16_real_away": {
+    "gt": "allow",
+    "n": 30,
+    "activity_dist": {
+      "Away": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": null,
+    "co_occurring_count": 0
+  },
+  "S2.5_child_present": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Child_Playing_Supervised": 30
+    },
+    "weather_dist": {
+      "Hazy_Polluted_Day": 30
+    },
+    "trigger_range": [
+      78.2,
+      94.7
+    ],
+    "co_occurring_count": 21
+  },
+  "S2.6_child_absent": {
+    "gt": "allow",
+    "n": 30,
+    "activity_dist": {
+      "Away": 8,
+      "Child_Playing_Supervised": 8,
+      "Working_From_Home": 7,
+      "Idle_At_Home": 7
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": [
+      78.2,
+      94.7
+    ],
+    "co_occurring_count": 10
+  },
+  "S2.11_occupied": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Taking_a_Shower": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 30
+    },
+    "trigger_range": [
+      82.1,
+      91.8
+    ],
+    "co_occurring_count": 0
+  },
+  "S2.12_empty": {
+    "gt": "allow",
+    "n": 30,
+    "activity_dist": {
+      "Idle_At_Home": 5,
+      "Away": 9,
+      "Cooking": 5,
+      "Child_Playing_Supervised": 6,
+      "Having_Dinner": 5
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": [
+      82.1,
+      91.8
+    ],
+    "co_occurring_count": 11
+  },
+  "S3.1_settling": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Putting_Baby_to_Sleep": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": [
+      1051.2,
+      1148.3
+    ],
+    "co_occurring_count": 21
+  },
+  "S3.2_playing": {
+    "gt": "allow",
+    "n": 30,
+    "activity_dist": {
+      "Child_Playing_Supervised": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": [
+      1051.2,
+      1148.3
+    ],
+    "co_occurring_count": 21
+  },
+  "S3.3_seated": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Having_Dinner": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": null,
+    "co_occurring_count": 6
+  },
+  "S3.4_left": {
+    "gt": "allow",
+    "n": 30,
+    "activity_dist": {
+      "Idle_At_Home": 5,
+      "Away": 9,
+      "Cooking": 5,
+      "Child_Playing_Supervised": 6,
+      "Having_Dinner": 5
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": null,
+    "co_occurring_count": 11
+  },
+  "S2.13_sleepwalk": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Sleeping": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": null,
+    "co_occurring_count": 9
+  },
+  "S2.14_intruder": {
+    "gt": "allow",
+    "n": 30,
+    "activity_dist": {
+      "Sleeping": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": null,
+    "co_occurring_count": 9
+  },
+  "S2_pet": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Sleeping": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": null,
+    "co_occurring_count": 9
+  },
+  "S3.5_movie": {
+    "gt": "intervene",
+    "n": 30,
+    "activity_dist": {
+      "Movie_Night": 30
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": null,
+    "co_occurring_count": 6
+  },
+  "S3.6_empty": {
+    "gt": "allow",
+    "n": 30,
+    "activity_dist": {
+      "Idle_At_Home": 5,
+      "Away": 9,
+      "Movie_Night": 5,
+      "Evening_Reading": 6,
+      "Sleeping": 5
+    },
+    "weather_dist": {
+      "Cold_Clear_Night": 6,
+      "Cloudy_Day": 12,
+      "Sunny_Day": 3,
+      "Rainy_Day": 6,
+      "Hazy_Polluted_Day": 3
+    },
+    "trigger_range": null,
+    "co_occurring_count": 6
+  }
+}

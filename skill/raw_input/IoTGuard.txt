@@ -1,0 +1,30 @@
+R.1   | IoTGuard | The door must be locked when a user is not present at home or sleeping.
+R.2   | IoTGuard | The lights (in a bedroom, hallway, etc.) must be turned on if the motion sensor is active.
+R.3   | IoTGuard | When there is smoke, the lights must be on if it is night, and the door must be unlocked.
+R.4   | IoTGuard | The light must be on when the user arrives home.
+R.5   | IoTGuard | The camera controlled doors must be closed when the door is clear of any objects.
+R.6   | IoTGuard | The garage door must be open when people arrive home, and it must be closed when people leave home.
+R.7   | IoTGuard | The location beacon must be inside a geo-fence around the home (defined by a user) to turn on the lights and open the garage door.
+R.8   | IoTGuard | The lights must be turned off when the sleep sensor detects a user is sleeping.
+R.9   | IoTGuard | The security system must not be disarmed when the user is not at home.
+R.10  | IoTGuard | The alarm must sound when there is smoke or CO; and when an unexpected motion, tampering, and entering occurs.
+R.11  | IoTGuard | The valve must be closed when water sensor is wet and when the water level threshold specified by a user is reached.
+R.12  | IoTGuard | The devices (e.g., light switches, music player, cleaning supply cabinets, medicine drawers, or gun cases) must not be open or turned on when the user is not at home or sleeping.
+R.13  | IoTGuard | Some device functionality (e.g., coffee machine starting brewing, heating up dinner in a crock-pot, turning on AC and heater) must not be used when the user is not at home or must be turned on before a time specified by a user.
+R.14  | IoTGuard | The refrigerator, alarm, and security system must not be disabled, and their use must not be restricted to save energy.
+R.15  | IoTGuard | The temperature value including idle energy savings must be set to the operating mode values as specified by the user (heating and cooling values are separate) based on the specific event.
+R.16  | IoTGuard | The thermostat temperature (heating and cooling) entered by the user must be changed when the mode selected by a user is changed (e.g., from sleeping mode to away mode).
+R.17  | IoTGuard | The AC and heater must not be on at the same time.
+R.18  | IoTGuard | The HVACs, fans, switches, heaters, dehumidifiers must be off when the humidity and temperature values are out of the threshold specified by the user (e.g., a particular degree above/below the threshold of temperature and humidity).
+R.19  | IoTGuard | The AC must be on when a user is within a specified distance of the house or at a time specified by the user.
+R.20  | IoTGuard | The security camera must take pictures when there is a motion, and contact/door sensors are active.
+R.21  | IoTGuard | The security camera must take a photo and sound alarm when the doors/windows are opening, and when the doors are unlocking at user-specified times. It must turn off all alarm when one alarm is turned off.
+R.22  | IoTGuard | The battery level of the devices (switch, humidity sensor, etc.) must not be below a specified threshold.
+R.23  | IoTGuard | The door must not be unlocked when a camera does not recognize an unauthorized face.
+R.24  | IoTGuard | The windows must not be open when the heater is on.
+R.25  | IoTGuard | The bell must not chime when the door is open.
+R.26  | IoTGuard | The alarm must go off when the main door is left open for too long (specified by the user).
+R.27  | IoTGuard | The mode must be set to "home" when the user is present at home, and "away" when the user is not present at home.
+R.28  | IoTGuard | The sound system must read (e.g., the day's weather forecast and the status of the devices) with the user interaction and must not read at the time not specified by the user (guards against violations when the sleeping mode is on and when the user is not home.)
+R.29  | IoTGuard | The sprinkler system must not be on when it rains, and when the soil moisture is below a threshold defined by a user. Flood sensor must activate the alarm when there is water.
+R.30  | IoTGuard | The water valve must shut off when water/moisture sensor detects leak around a location such as basement and laundry room.

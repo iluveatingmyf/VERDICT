@@ -102,6 +102,27 @@ def _forced_times(cause, window_min):
     return {f for f in forced if -window_min <= f <= 0}
 
 
+def _apply_sensor_noise(states, trigger_q, companions, rng, noise_log):
+    """Small drift on numeric sensors that aren't the trigger quantity and
+    aren't cause companions — so readings look real, not clean integers."""
+    NOISE = {
+        "sensor.living_room_temperature": 0.4,
+        "sensor.bathroom_humidity": 1.2,
+        "sensor.living_room_co2": 12.0,
+        "sensor.living_room_pm25": 1.5,
+        "sensor.kitchen_co": 0.5,
+    }
+    companion_ents = set(canonicalize(e) for e in companions)
+    for ent, mag in NOISE.items():
+        if ent == trigger_q or ent in companion_ents or ent not in IDX:
+            continue
+        base = states[IDX[ent]]
+        if isinstance(base, (int, float)):
+            states[IDX[ent]] = round(base + rng.uniform(-mag, mag), 1)
+            if ent not in noise_log["drifted_sensors"]:
+                noise_log["drifted_sensors"].append(ent)
+
+
 def generate_situation(recipe, rng=None):
     """recipe = {
         primary_activity, cause_factory, weather, salience, time_of_day,
@@ -131,6 +152,7 @@ def generate_situation(recipe, rng=None):
     times = sorted(grid | forced)
 
     # 4. build each snapshot
+    noise_log = {"drifted_sensors": []}
     snapshots = []
     for t in times:
         states = [_default_state(e) for e in DEVICE_SCHEMA]
@@ -140,7 +162,10 @@ def generate_situation(recipe, rng=None):
             _apply_activity_imprints(states, secondary, recipe["salience"], rng)
         # foreground: cause source drives the trigger quantity + companions
         q = cause.quantity
-        states[IDX[q]] = round(cause.value_at(t), 1)
+        # only numeric quantities get value_at written; binary/state triggers
+        # are set via companions (motion, group.family, vacuum, etc.)
+        if q in IDX and REGISTRY[q]["type"] == "numeric":
+            states[IDX[q]] = round(cause.value_at(t), 1)
         for ent, val in cause.companions_at(t).items():
             ent_c = canonicalize(ent)
             if ent_c in IDX:
@@ -148,6 +173,9 @@ def generate_situation(recipe, rng=None):
         # sleep_mode logical flag for sleep activities
         if primary == "Sleeping" and "input_select.sleep_mode" in IDX:
             states[IDX["input_select.sleep_mode"]] = "on"
+        # sensor noise: small drift on numeric sensors that are NOT the trigger
+        # quantity and NOT a cause companion (so real readings, not clean ints)
+        _apply_sensor_noise(states, q, cause.companions_at(t), rng, noise_log)
         snapshots.append({"t_min_before_trigger": t,
                           "states": states})
 
@@ -162,6 +190,28 @@ def generate_situation(recipe, rng=None):
             "weather": recipe["weather"],
             "salience": recipe["salience"],
             "_debug_only": True,
+        },
+        "_ground_facts": {
+            # traceability layer: how this situation was generated. Lets anyone
+            # reproduce it and verify it is not hand-authored. verdict-agnostic.
+            "noise_seed": recipe.get("noise_seed"),
+            "cause_mode": cause.cause_mode,
+            "cause_sub_type": cause.sub_type,
+            "cause_onset_min": round(cause.onset_min, 1),
+            "has_human_precursor": bool(cause.companions_at(cause.onset_min + 1)),
+            "companion_entities": sorted(set(
+                canonicalize(e) for tt in [s["t_min_before_trigger"] for s in snapshots]
+                for e in cause.companions_at(tt)
+            )),
+            "primary_activity": primary,
+            "secondary_activity": secondary,
+            "co_occurring": secondary is not None,
+            "weather": recipe["weather"],
+            "weather_role": recipe.get("weather_role"),
+            "salience": recipe["salience"],
+            "drifted_sensors": noise_log["drifted_sensors"],
+            "window_min": window_min,
+            "n_snapshots": len(snapshots),
         },
         "device_schema": DEVICE_SCHEMA,
         "snapshots": snapshots,
@@ -216,7 +266,7 @@ def _label_name(activity):
     m = {
         "Cooking": "cooking", "Sleeping": "sleeping", "Taking_a_Shower": "showering",
         "Movie_Night": "watching_tv", "Having_Dinner": "dining",
-        "Putting_Baby_to_Sleep": "caring_for_baby", "Child_Playing_Supervised": "caring_for_baby",
+        "Putting_Baby_to_Sleep": "settling_baby", "Child_Playing_Supervised": "child_playing",
         "Working_From_Home": "working_at_pc", "Evening_Reading": "reading",
         "Night_Activity": "idle", "Idle_At_Home": "idle", "Away": "leaving",
     }

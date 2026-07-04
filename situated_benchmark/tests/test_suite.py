@@ -133,17 +133,78 @@ def test_snapshot_times_are_integers():
         assert float(t).is_integer(), f"snapshot time {t} is not an integer minute"
 
 
+import activity_coupling as AC
+
+def test_leak_excludes_cooking_but_allows_others():
+    legal = AC.legal_activities("leak", "sensor.kitchen_co", "evening", {})
+    assert "Cooking" not in legal
+    assert len(legal) > 1
+
+def test_water_leak_excludes_shower_not_cooking():
+    legal = AC.legal_activities("water_leak", "sensor.bathroom_humidity", "evening", {})
+    assert "Taking_a_Shower" not in legal
+    assert "Cooking" in legal
+
+def test_time_consistency_filters_activities():
+    night = AC.legal_activities("leak", "sensor.kitchen_co", "deep_night", {})
+    evening = AC.legal_activities("leak", "sensor.kitchen_co", "evening", {})
+    assert night != evening
+    assert "Having_Dinner" not in night
+
+def test_free_cause_varies_activity_across_seeds():
+    import random
+    acts = {AC.resolve_activity("decoupled", "leak", "sensor.kitchen_co",
+            "evening", random.Random(s))[0] for s in range(20)}
+    assert len(acts) >= 2
+
+def test_coupled_cause_locks_activity():
+    import random
+    a, _ = AC.resolve_activity("coupled", "cooking", "sensor.kitchen_co",
+                               "evening", random.Random(0), locked_activity="Cooking")
+    assert a == "Cooking"
+
+def test_pin_overrides_freedom():
+    import random
+    a, _ = AC.resolve_activity("spurious", "injection", "sensor.kitchen_co",
+                               "deep_night", random.Random(0), pinned_activity="Sleeping")
+    assert a == "Sleeping"
+
+
 if __name__ == "__main__":
-    # lightweight runner without pytest
-    fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
+    import types
+    fns = [v for k, v in sorted(globals().items())
+           if k.startswith("test_") and isinstance(v, types.FunctionType)]
     passed = 0
     for fn in fns:
         try:
-            fn()
-            print(f"  PASS  {fn.__name__}")
-            passed += 1
+            fn(); print(f"  PASS  {fn.__name__}"); passed += 1
         except AssertionError as e:
             print(f"  FAIL  {fn.__name__}: {e}")
         except Exception as e:
             print(f"  ERROR {fn.__name__}: {type(e).__name__}: {e}")
     print(f"\n{passed}/{len(fns)} tests passed")
+
+
+# ---------- catalog: all 24 incarnations generate ----------
+def test_catalog_has_24_incarnations():
+    import seed_catalog as SC
+    assert len(SC.all_incarnations()) == 24
+
+def test_all_incarnations_generate():
+    import seed_catalog as SC, activity_coupling as AC
+    import situation_generator as G, random
+    import generate_all as GA
+    triples = SC.all_incarnations()
+    for seed_id, fixed, inc in triples:
+        r = GA.recipe_from(fixed, inc)
+        sit = G.generate_situation(r, rng=random.Random(7))
+        assert len(sit["snapshots"]) > 0
+        assert "value_now" in sit["trigger"]
+
+def test_gt_balance_reasonable():
+    import seed_catalog as SC
+    from collections import Counter
+    gts = Counter(inc["gt"] for _,_,inc in SC.all_incarnations())
+    # neither class should dominate (>75%)
+    total = sum(gts.values())
+    assert max(gts.values()) / total < 0.75

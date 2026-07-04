@@ -1,0 +1,53 @@
+P.1   | TAPFixer | IF the user arrives home, the light should be turned on.
+P.2   | TAPFixer | IF the user is not at home / not nearby-home, the light should be turned off.
+P.3   | TAPFixer | WHEN the user is not at home / not nearby-home, the light should be off.
+P.4   | TAPFixer | IF the user arrives home, the garage door should be opened.
+P.5   | TAPFixer | IF the user leaves home, the garage door should be closed.
+P.6   | TAPFixer | WHEN the user leaves home, the garage door should be closed.
+P.7   | TAPFixer | IF the user is not at home / not nearby-home, the door should be locked.
+P.8   | TAPFixer | WHEN the user is not at home / not nearby-home, the door should be locked.
+P.9   | TAPFixer | IF the user is not at home / not nearby-home, the security camera should be turned on.
+P.10  | TAPFixer | WHEN the user is not at home / not nearby-home, the security camera should be on.
+P.11  | TAPFixer | IF the door opens while the user is not at home / not nearby-home, the security camera should take pictures.
+P.12  | TAPFixer | IF the user is not at home / not nearby-home, the switch should be turned off.
+P.13  | TAPFixer | WHEN the user is not at home / not nearby-home, the switch should be off.
+P.14  | TAPFixer | IF the temperature is below a predefined value and someone is at home, the AC should be in heating mode.
+P.15  | TAPFixer | IF the temperature rises above a predefined value, the AC should be in cooling mode.
+P.16  | TAPFixer | WHEN the heater is on, the AC should be off.
+P.17  | TAPFixer | IF the user is not at home / not nearby-home, the AC should be turned off.
+P.18  | TAPFixer | WHEN the user is not at home / not nearby-home, the AC should be off.
+P.19  | TAPFixer | IF the temperature is below a predefined value while someone is at home, the heater should be turned on.
+P.20  | TAPFixer | IF the temperature rises above a predefined value, the heater should be turned off.
+P.21  | TAPFixer | WHEN the AC is on, the heater should be off.
+P.22  | TAPFixer | IF the user is not at home / not nearby-home, the heater should be turned off.
+P.23  | TAPFixer | WHEN the user is not at home / not nearby-home, the heater should be off.
+P.24  | TAPFixer | IF the user is not at home / not nearby-home, the coffee machine should be turned off.
+P.25  | TAPFixer | WHEN the user is not at home / not nearby-home, the coffee machine should be off.
+P.26  | TAPFixer | IF the user is not at home / not nearby-home, the electric blanket should be turned off.
+P.27  | TAPFixer | WHEN the user is not at home / not nearby-home, the electric blanket should be off.
+P.28  | TAPFixer | IF the smoke is detected, the alarm should be activated.
+P.29  | TAPFixer | WHEN there is smoke, the alarm should be activated.
+P.30  | TAPFixer | IF CO is detected, the alarm should be activated.
+P.31  | TAPFixer | WHEN CO is detected, the alarm should be activated.
+P.32  | TAPFixer | IF humidity is greater than a predefined value, the ventilating fan should be turned on.
+P.33  | TAPFixer | IF CO2 is greater than a predefined value, the ventilating fan should be turned on.
+P.34  | TAPFixer | WHEN CO2 remains greater than a predefined value, the ventilating fan should be on for at least the permitted time.
+P.35  | TAPFixer | IF the user is not at home / not nearby-home, the oven should be turned off.
+P.36  | TAPFixer | WHEN the user is not at home / not nearby-home, the oven should be off.
+P.37  | TAPFixer | IF CO is detected, the natural gas hot water heater should be turned off.
+P.38  | TAPFixer | WHEN CO is detected, the natural gas hot water heater should be turned off.
+P.39  | TAPFixer | IF CO is detected, the gas valve should shut off.
+P.40  | TAPFixer | WHEN CO is detected, the gas valve should be closed.
+P.41  | TAPFixer | IF the smoke is detected, the water valve should be turned on.
+P.42  | TAPFixer | WHEN there is smoke, the water valve should be on.
+P.43  | TAPFixer | IF the soil moisture sensor is below a predefined value, the sprinkler system should be turned on.
+P.44  | TAPFixer | When the soil moisture sensor is below a predefined value, the sprinkler system should be on for at least the permitted time.
+P.45  | TAPFixer | IF the weather is raining, the sprinkler should be turned off.
+P.46  | TAPFixer | WHEN the weather is raining, the sprinkler should be off.
+P.47  | TAPFixer | IF CO2 is greater than a predefined value, the window should be opened.
+P.48  | TAPFixer | IF the weather is raining, the window should be closed.
+P.49  | TAPFixer | WHEN the weather is raining, the window should be closed.
+P.50  | TAPFixer | IF the smoke is detected, the window should be opened.
+P.51  | TAPFixer | WHEN there is smoke, the window should be opened.
+P.52  | TAPFixer | IF CO is detected, the window should be opened.
+P.53  | TAPFixer | WHEN CO is detected, the window should be opened.

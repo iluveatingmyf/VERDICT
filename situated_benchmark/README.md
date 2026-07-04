@@ -27,6 +27,7 @@ No third-party dependencies. Python 3.8+.
 ```bash
 cd situated_benchmark
 python generate_demo.py        # writes the CO quartet to ./output/*.json
+python simulation/batch_generator.py   # batch: seed x salience, varied activities
 python tests/test_suite.py     # runs invariant tests (12 tests)
 ```
 
@@ -74,6 +75,21 @@ See `docs/CONFIG.md` for the full design reference.
 
 ---
 
+## What Layer 6 added (cause→activity coupling)
+
+- A **leak/injection can co-occur with ANY legal activity** — not a fixed
+  empty house. "Legal" = passes three constraints: time-consistency,
+  physical non-interference (a CO leak excludes Cooking so it can't forge CO
+  evidence), presence-consistency. See `activity_coupling.py`.
+- **coupled** causes LOCK the activity (cooking CO ⇒ Cooking); **decoupled/
+  spurious** causes leave it FREE (sampled per seed); a case may PIN it for
+  semantic reasons (injection-while-asleep).
+- **Batch generation** across seed × salience: fixed seed list (reproducible),
+  varied instances (distribution). A leak case meets Sleeping/Idle/Away/Night
+  across its seeds. See `batch_generator.py`.
+- **Extended cause sources**: CO, humidity (steam vs real leak), motion
+  (sleepwalk vs intruder by spatial origin), timer, PM2.5, CO2.
+
 ## Design decisions already locked
 
 - **Plan B** for multi-person: one primary activity label + `co_occurring`
@@ -92,13 +108,21 @@ See `docs/CONFIG.md` for the full design reference.
 
 ---
 
+## The catalog (seed_catalog.py)
+
+10 seeds → 24 incarnations across 4 flip-axes, each a pure situation recipe
+with a v20 ground-truth label (intervene/allow). All 24 generate valid,
+distinct situations (`python simulation/generate_all.py`). See
+`docs/SEED_DESIGN.md` for the problem→incarnations structure.
+
 ## Roadmap (not yet built)
 
 | layer | component | status |
 |-------|-----------|--------|
-| 6 | case → parameter mapping (23 seeds → recipes) | TODO |
+| 6 | cause→activity coupling + extended sources + batching | DONE |
+| 6b | seed catalog: 10 seeds → 24 incarnations, all generate | DONE |
 | 7 | activity-label filler | inlined in engine, to be extracted |
-| 8 | ground-truth annotator (params → PASS/MODIFY/BLOCK) | TODO |
+| 8 | ground-truth annotator (gt label → verdict DSL) | TODO (DSL deferred) |
 | 9 | evaluation script (stratified report) | TODO |
 | — | extend cause sources beyond CO (humidity, motion, timer, PM2.5) | TODO |
 | — | second benchmark: rule-interaction static analysis | TODO |
